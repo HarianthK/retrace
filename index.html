@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Retrace</title>
+<meta name="description" content="Drop in an OpenTelemetry trace of an LLM app and see what it did: the calls, the messages, the tool calls, the tokens." />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%230b0f14'/%3E%3Crect x='2' y='3' width='12' height='2' fill='%2358a6ff'/%3E%3Crect x='4' y='7' width='8' height='2' fill='%2358a6ff'/%3E%3Crect x='6' y='11' width='6' height='2' fill='%2358a6ff'/%3E%3C/svg%3E">
+<style>
+  :root {
+    color-scheme: dark;
+    --accent: #58a6ff; --ok: #3fb950; --bad: #f85149; --warn: #d29922;
+    --muted: #8b9199; --ink: #f4f1ec; --ground: #0b0f14; --panel: #12171d; --edge: rgb(255 255 255 / 0.08);
+    --llm: #a371f7; --tool: #d29922; --chain: #58a6ff; --agent: #3fb950; --retriever: #39c5cf; --other: #8b9199;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; min-height: 100vh; background: var(--ground); color: var(--ink); font: 14px/1.5 ui-sans-serif, system-ui, sans-serif; padding: 20px 16px 40px; }
+  header { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; margin-bottom: 12px; }
+  h1 { margin: 0; font-size: 1rem; font-weight: 600; } h1 span { color: var(--accent); }
+  header p { margin: 0; color: var(--muted); font-size: 0.8rem; }
+  a { color: var(--accent); text-decoration: none; } a:hover { text-decoration: underline; }
+  button, label.button { background: var(--panel); color: var(--ink); border: 1px solid var(--edge); border-radius: 8px; padding: 6px 12px; font: inherit; cursor: pointer; }
+  button.primary { background: var(--accent); color: #0b0f14; border-color: transparent; font-weight: 600; }
+  input[type=file] { display: none; }
+
+  .drop { border: 1px dashed var(--edge); border-radius: 12px; padding: 28px 16px; text-align: center; color: var(--muted); margin-bottom: 14px; }
+  .drop.over { border-color: var(--accent); color: var(--ink); }
+  .drop .row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 10px; }
+  .drop small { display: block; margin-top: 8px; font-size: 0.75rem; }
+  .status { color: var(--bad); font-size: 0.85rem; min-height: 1.4em; }
+
+  .traces { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+  .traces button.on { border-color: var(--accent); }
+
+  .work { display: grid; grid-template-columns: minmax(280px, 1fr) minmax(320px, 1.4fr); gap: 12px; align-items: start; }
+  @media (max-width: 820px) { .work { grid-template-columns: 1fr; } }
+  .pane { background: var(--panel); border: 1px solid var(--edge); border-radius: 12px; padding: 10px 12px; min-width: 0; }
+  .pane h2 { margin: 0 0 8px; font-size: 0.8rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+
+  .span { display: grid; grid-template-columns: auto 1fr auto; gap: 8px; align-items: center; padding: 5px 6px; border-radius: 8px; cursor: pointer; }
+  .span:hover { background: rgb(255 255 255 / 0.04); }
+  .span.on { background: rgb(88 166 255 / 0.12); }
+  .kind { font-size: 0.65rem; font-weight: 700; letter-spacing: 0.04em; padding: 1px 6px; border-radius: 6px; color: #0b0f14; min-width: 4.5em; text-align: center; }
+  .span .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .span .name b { color: var(--bad); font-weight: 600; }
+  .span .time { color: var(--muted); font-size: 0.75rem; white-space: nowrap; }
+  .bar { grid-column: 2 / span 2; height: 3px; border-radius: 2px; background: rgb(255 255 255 / 0.06); position: relative; }
+  .bar i { position: absolute; top: 0; bottom: 0; border-radius: 2px; background: var(--accent); opacity: 0.8; }
+
+  .facts { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+  .facts div { background: var(--ground); border: 1px solid var(--edge); border-radius: 8px; padding: 4px 10px; font-size: 0.8rem; }
+  .facts div small { color: var(--muted); display: block; font-size: 0.7rem; }
+  .facts .err { border-color: var(--bad); color: var(--bad); }
+
+  h3 { margin: 12px 0 6px; font-size: 0.8rem; color: var(--muted); font-weight: 600; }
+  .msg { border-left: 3px solid var(--edge); padding: 4px 10px; margin: 6px 0; }
+  .msg.user { border-color: var(--accent); } .msg.assistant { border-color: var(--llm); } .msg.tool { border-color: var(--tool); } .msg.system { border-color: var(--muted); }
+  .msg .role { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); }
+  .msg .call { font-family: ui-monospace, monospace; font-size: 0.8rem; color: var(--tool); }
+  pre { margin: 0; background: var(--ground); border: 1px solid var(--edge); border-radius: 8px; padding: 8px 10px; font: 0.78rem/1.45 ui-monospace, monospace; white-space: pre-wrap; word-break: break-word; max-height: 24em; overflow: auto; }
+  .reasoning { color: var(--muted); font-style: italic; }
+  table { border-collapse: collapse; width: 100%; font-size: 0.78rem; }
+  td { padding: 3px 6px; vertical-align: top; border-top: 1px solid var(--edge); word-break: break-word; }
+  td:first-child { color: var(--muted); white-space: nowrap; font-family: ui-monospace, monospace; }
+  footer { color: var(--muted); font-size: 0.75rem; margin-top: 18px; }
+</style>
+</head>
+<body>
+<header>
+  <h1><span>Retrace</span></h1>
+  <p>Drop in a trace of an LLM app and see what it did: the calls, the messages, the tool calls, the tokens. Nothing leaves your browser.</p>
+</header>
+
+<div class="drop" id="drop">
+  Drag a trace file here
+  <div class="row">
+    <label class="button">Choose a file<input id="file" type="file" accept=".json,.jsonl,.txt,application/json" /></label>
+    <button id="sample" class="primary" type="button">Load the sample</button>
+  </div>
+  <small>OpenTelemetry JSON in any of the usual shapes: the Python SDK's <code>span.to_json()</code> (one or many, or as printed by the console exporter), OTLP, or a Phoenix export.</small>
+</div>
+<div class="status" id="status"></div>
+<div class="traces" id="traces"></div>
+
+<div class="work" id="work" hidden>
+  <section class="pane">
+    <h2 id="treeTitle">Spans</h2>
+    <div id="tree"></div>
+  </section>
+  <section class="pane" id="detail">
+    <h2>Pick a span</h2>
+  </section>
+</div>
+
+<footer>Reads the <a href="https://github.com/Arize-ai/openinference/blob/main/spec/semantic_conventions.md">OpenInference</a> attributes when they are there and shows plain OpenTelemetry spans when they are not. <a href="https://github.com/HarianthK/retrace">Source</a>.</footer>
+<script type="module" src="app.js"></script>
+</body>
+</html>

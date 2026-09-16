@@ -1,0 +1,202 @@
+[
+  {
+    "name": "ChatCompletion",
+    "context": {
+      "trace_id": "0x32a65d53561a7e6d78e93c6c9f79a37d",
+      "span_id": "0x56f990d865569f7a",
+      "trace_state": "[]"
+    },
+    "kind": "SpanKind.INTERNAL",
+    "parent_id": "0x09aad1a2142ce935",
+    "start_time": "2026-09-16T21:27:47.816886Z",
+    "end_time": "2026-09-16T21:27:47.837639Z",
+    "status": {
+      "status_code": "UNSET"
+    },
+    "attributes": {
+      "openinference.span.kind": "LLM",
+      "llm.model_name": "gpt-4o-mini",
+      "llm.provider": "openai",
+      "llm.invocation_parameters": "{\"temperature\": 0.2, \"max_tokens\": 200}",
+      "input.value": "{\"messages\": [{\"role\": \"system\", \"content\": \"You are a weather assistant.\"}, {\"role\": \"user\", \"content\": \"What is the weather in Paris right now, in one line?\"}]}",
+      "input.mime_type": "application/json",
+      "output.value": "{\"role\": \"assistant\", \"tool_calls\": [{\"id\": \"call_1\", \"function\": {\"name\": \"get_weather\", \"arguments\": \"{\\\"city\\\": \\\"Paris\\\"}\"}}]}",
+      "output.mime_type": "application/json",
+      "llm.token_count.prompt": 61,
+      "llm.token_count.completion": 17,
+      "llm.token_count.total": 78,
+      "llm.input_messages.0.message.role": "system",
+      "llm.input_messages.0.message.content": "You are a weather assistant.",
+      "llm.input_messages.1.message.role": "user",
+      "llm.input_messages.1.message.content": "What is the weather in Paris right now, in one line?",
+      "llm.output_messages.0.message.role": "assistant",
+      "llm.output_messages.0.message.tool_calls.0.tool_call.id": "call_1",
+      "llm.output_messages.0.message.tool_calls.0.tool_call.function.name": "get_weather",
+      "llm.output_messages.0.message.tool_calls.0.tool_call.function.arguments": "{\"city\": \"Paris\"}",
+      "llm.tools.0.tool.json_schema": "{\"type\": \"function\", \"function\": {\"name\": \"get_weather\", \"parameters\": {\"type\": \"object\", \"properties\": {\"city\": {\"type\": \"string\"}}}}}"
+    },
+    "events": [],
+    "links": [],
+    "resource": {
+      "attributes": {
+        "telemetry.sdk.language": "python",
+        "telemetry.sdk.name": "opentelemetry",
+        "telemetry.sdk.version": "1.44.0",
+        "service.instance.id": "39a6557d-e257-4e77-b811-fbd083cf09aa",
+        "service.name": "unknown_service"
+      },
+      "schema_url": ""
+    }
+  },
+  {
+    "name": "get_weather",
+    "context": {
+      "trace_id": "0x32a65d53561a7e6d78e93c6c9f79a37d",
+      "span_id": "0x2331ec7d3788dca7",
+      "trace_state": "[]"
+    },
+    "kind": "SpanKind.INTERNAL",
+    "parent_id": "0x09aad1a2142ce935",
+    "start_time": "2026-09-16T21:27:47.837639Z",
+    "end_time": "2026-09-16T21:27:47.843382Z",
+    "status": {
+      "status_code": "UNSET"
+    },
+    "attributes": {
+      "openinference.span.kind": "TOOL",
+      "tool.name": "get_weather",
+      "input.value": "{\"city\": \"Paris\"}",
+      "input.mime_type": "application/json",
+      "output.value": "{\"temp_c\": 18, \"sky\": \"overcast\", \"rain_later\": true}",
+      "output.mime_type": "application/json"
+    },
+    "events": [],
+    "links": [],
+    "resource": {
+      "attributes": {
+        "telemetry.sdk.language": "python",
+        "telemetry.sdk.name": "opentelemetry",
+        "telemetry.sdk.version": "1.44.0",
+        "service.instance.id": "39a6557d-e257-4e77-b811-fbd083cf09aa",
+        "service.name": "unknown_service"
+      },
+      "schema_url": ""
+    }
+  },
+  {
+    "name": "ChatCompletion",
+    "context": {
+      "trace_id": "0x32a65d53561a7e6d78e93c6c9f79a37d",
+      "span_id": "0x2de82b472e58c256",
+      "trace_state": "[]"
+    },
+    "kind": "SpanKind.INTERNAL",
+    "parent_id": "0x09aad1a2142ce935",
+    "start_time": "2026-09-16T21:27:47.843382Z",
+    "end_time": "2026-09-16T21:27:47.873967Z",
+    "status": {
+      "status_code": "UNSET"
+    },
+    "attributes": {
+      "openinference.span.kind": "LLM",
+      "llm.model_name": "gpt-4o-mini",
+      "llm.provider": "openai",
+      "input.value": "{\"messages\": [{\"role\": \"system\", \"content\": \"You are a weather assistant.\"}, {\"role\": \"user\", \"content\": \"What is the weather in Paris right now, in one line?\"}, {\"role\": \"assistant\", \"tool_calls\": [{\"id\": \"call_1\", \"function\": {\"name\": \"get_weather\", \"arguments\": \"{\\\"city\\\": \\\"Paris\\\"}\"}}]}, {\"role\": \"tool\", \"content\": \"{\\\"temp_c\\\": 18, \\\"sky\\\": \\\"overcast\\\", \\\"rain_later\\\": true}\"}]}",
+      "input.mime_type": "application/json",
+      "output.value": "Paris is 18 C and overcast, with light rain expected this evening.",
+      "llm.token_count.prompt": 112,
+      "llm.token_count.completion": 19,
+      "llm.token_count.total": 131,
+      "llm.token_count.prompt_details.cache_read": 48,
+      "llm.input_messages.0.message.role": "system",
+      "llm.input_messages.0.message.content": "You are a weather assistant.",
+      "llm.input_messages.1.message.role": "user",
+      "llm.input_messages.1.message.content": "What is the weather in Paris right now, in one line?",
+      "llm.input_messages.2.message.role": "assistant",
+      "llm.input_messages.2.message.tool_calls.0.tool_call.id": "call_1",
+      "llm.input_messages.2.message.tool_calls.0.tool_call.function.name": "get_weather",
+      "llm.input_messages.2.message.tool_calls.0.tool_call.function.arguments": "{\"city\": \"Paris\"}",
+      "llm.input_messages.3.message.role": "tool",
+      "llm.input_messages.3.message.content": "{\"temp_c\": 18, \"sky\": \"overcast\", \"rain_later\": true}",
+      "llm.output_messages.0.message.role": "assistant",
+      "llm.output_messages.0.message.content": "Paris is 18 C and overcast, with light rain expected this evening."
+    },
+    "events": [],
+    "links": [],
+    "resource": {
+      "attributes": {
+        "telemetry.sdk.language": "python",
+        "telemetry.sdk.name": "opentelemetry",
+        "telemetry.sdk.version": "1.44.0",
+        "service.instance.id": "39a6557d-e257-4e77-b811-fbd083cf09aa",
+        "service.name": "unknown_service"
+      },
+      "schema_url": ""
+    }
+  },
+  {
+    "name": "guardrail",
+    "context": {
+      "trace_id": "0x32a65d53561a7e6d78e93c6c9f79a37d",
+      "span_id": "0x9c9731469fd94449",
+      "trace_state": "[]"
+    },
+    "kind": "SpanKind.INTERNAL",
+    "parent_id": "0x09aad1a2142ce935",
+    "start_time": "2026-09-16T21:27:47.873967Z",
+    "end_time": "2026-09-16T21:27:47.876665Z",
+    "status": {
+      "status_code": "ERROR",
+      "description": "guardrail service timed out"
+    },
+    "attributes": {
+      "openinference.span.kind": "GUARDRAIL",
+      "input.value": "Paris is 18 C and overcast, with light rain expected this evening.",
+      "output.value": "pass"
+    },
+    "events": [],
+    "links": [],
+    "resource": {
+      "attributes": {
+        "telemetry.sdk.language": "python",
+        "telemetry.sdk.name": "opentelemetry",
+        "telemetry.sdk.version": "1.44.0",
+        "service.instance.id": "39a6557d-e257-4e77-b811-fbd083cf09aa",
+        "service.name": "unknown_service"
+      },
+      "schema_url": ""
+    }
+  },
+  {
+    "name": "agent",
+    "context": {
+      "trace_id": "0x32a65d53561a7e6d78e93c6c9f79a37d",
+      "span_id": "0x09aad1a2142ce935",
+      "trace_state": "[]"
+    },
+    "kind": "SpanKind.INTERNAL",
+    "parent_id": null,
+    "start_time": "2026-09-16T21:27:47.806016Z",
+    "end_time": "2026-09-16T21:27:47.876665Z",
+    "status": {
+      "status_code": "UNSET"
+    },
+    "attributes": {
+      "openinference.span.kind": "AGENT",
+      "input.value": "What is the weather in Paris right now, in one line?",
+      "output.value": "Paris is 18 C and overcast, with light rain expected this evening."
+    },
+    "events": [],
+    "links": [],
+    "resource": {
+      "attributes": {
+        "telemetry.sdk.language": "python",
+        "telemetry.sdk.name": "opentelemetry",
+        "telemetry.sdk.version": "1.44.0",
+        "service.instance.id": "39a6557d-e257-4e77-b811-fbd083cf09aa",
+        "service.name": "unknown_service"
+      },
+      "schema_url": ""
+    }
+  }
+]

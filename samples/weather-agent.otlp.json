@@ -1,0 +1,419 @@
+{
+  "resourceSpans": [
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "service.name",
+            "value": {
+              "stringValue": "weather-agent"
+            }
+          }
+        ]
+      },
+      "scopeSpans": [
+        {
+          "scope": {
+            "name": "sample"
+          },
+          "spans": [
+            {
+              "traceId": "32a65d53561a7e6d78e93c6c9f79a37d",
+              "spanId": "56f990d865569f7a",
+              "parentSpanId": "09aad1a2142ce935",
+              "name": "ChatCompletion",
+              "kind": 1,
+              "startTimeUnixNano": "1789594067816886000",
+              "endTimeUnixNano": "1789594067837639000",
+              "attributes": [
+                {
+                  "key": "openinference.span.kind",
+                  "value": {
+                    "stringValue": "LLM"
+                  }
+                },
+                {
+                  "key": "llm.model_name",
+                  "value": {
+                    "stringValue": "gpt-4o-mini"
+                  }
+                },
+                {
+                  "key": "llm.provider",
+                  "value": {
+                    "stringValue": "openai"
+                  }
+                },
+                {
+                  "key": "llm.invocation_parameters",
+                  "value": {
+                    "stringValue": "{\"temperature\": 0.2, \"max_tokens\": 200}"
+                  }
+                },
+                {
+                  "key": "input.value",
+                  "value": {
+                    "stringValue": "{\"messages\": [{\"role\": \"system\", \"content\": \"You are a weather assistant.\"}, {\"role\": \"user\", \"content\": \"What is the weather in Paris right now, in one line?\"}]}"
+                  }
+                },
+                {
+                  "key": "input.mime_type",
+                  "value": {
+                    "stringValue": "application/json"
+                  }
+                },
+                {
+                  "key": "output.value",
+                  "value": {
+                    "stringValue": "{\"role\": \"assistant\", \"tool_calls\": [{\"id\": \"call_1\", \"function\": {\"name\": \"get_weather\", \"arguments\": \"{\\\"city\\\": \\\"Paris\\\"}\"}}]}"
+                  }
+                },
+                {
+                  "key": "output.mime_type",
+                  "value": {
+                    "stringValue": "application/json"
+                  }
+                },
+                {
+                  "key": "llm.token_count.prompt",
+                  "value": {
+                    "intValue": "61"
+                  }
+                },
+                {
+                  "key": "llm.token_count.completion",
+                  "value": {
+                    "intValue": "17"
+                  }
+                },
+                {
+                  "key": "llm.token_count.total",
+                  "value": {
+                    "intValue": "78"
+                  }
+                },
+                {
+                  "key": "llm.input_messages.0.message.role",
+                  "value": {
+                    "stringValue": "system"
+                  }
+                },
+                {
+                  "key": "llm.input_messages.0.message.content",
+                  "value": {
+                    "stringValue": "You are a weather assistant."
+                  }
+                },
+                {
+                  "key": "llm.input_messages.1.message.role",
+                  "value": {
+                    "stringValue": "user"
+                  }
+                },
+                {
+                  "key": "llm.input_messages.1.message.content",
+                  "value": {
+                    "stringValue": "What is the weather in Paris right now, in one line?"
+                  }
+                },
+                {
+                  "key": "llm.output_messages.0.message.role",
+                  "value": {
+                    "stringValue": "assistant"
+                  }
+                },
+                {
+                  "key": "llm.output_messages.0.message.tool_calls.0.tool_call.id",
+                  "value": {
+                    "stringValue": "call_1"
+                  }
+                },
+                {
+                  "key": "llm.output_messages.0.message.tool_calls.0.tool_call.function.name",
+                  "value": {
+                    "stringValue": "get_weather"
+                  }
+                },
+                {
+                  "key": "llm.output_messages.0.message.tool_calls.0.tool_call.function.arguments",
+                  "value": {
+                    "stringValue": "{\"city\": \"Paris\"}"
+                  }
+                },
+                {
+                  "key": "llm.tools.0.tool.json_schema",
+                  "value": {
+                    "stringValue": "{\"type\": \"function\", \"function\": {\"name\": \"get_weather\", \"parameters\": {\"type\": \"object\", \"properties\": {\"city\": {\"type\": \"string\"}}}}}"
+                  }
+                }
+              ],
+              "status": {
+                "code": 0
+              }
+            },
+            {
+              "traceId": "32a65d53561a7e6d78e93c6c9f79a37d",
+              "spanId": "2331ec7d3788dca7",
+              "parentSpanId": "09aad1a2142ce935",
+              "name": "get_weather",
+              "kind": 1,
+              "startTimeUnixNano": "1789594067837639000",
+              "endTimeUnixNano": "1789594067843382000",
+              "attributes": [
+                {
+                  "key": "openinference.span.kind",
+                  "value": {
+                    "stringValue": "TOOL"
+                  }
+                },
+                {
+                  "key": "tool.name",
+                  "value": {
+                    "stringValue": "get_weather"
+                  }
+                },
+                {
+                  "key": "input.value",
+                  "value": {
+                    "stringValue": "{\"city\": \"Paris\"}"
+                  }
+                },
+                {
+                  "key": "input.mime_type",
+                  "value": {
+                    "stringValue": "application/json"
+                  }
+                },
+                {
+                  "key": "output.value",
+                  "value": {
+                    "stringValue": "{\"temp_c\": 18, \"sky\": \"overcast\", \"rain_later\": true}"
+                  }
+                },
+                {
+                  "key": "output.mime_type",
+                  "value": {
+                    "stringValue": "application/json"
+                  }
+                }
+              ],
+              "status": {
+                "code": 0
+              }
+            },
+            {
+              "traceId": "32a65d53561a7e6d78e93c6c9f79a37d",
+              "spanId": "2de82b472e58c256",
+              "parentSpanId": "09aad1a2142ce935",
+              "name": "ChatCompletion",
+              "kind": 1,
+              "startTimeUnixNano": "1789594067843382000",
+              "endTimeUnixNano": "1789594067873967000",
+              "attributes": [
+                {
+                  "key": "openinference.span.kind",
+                  "value": {
+                    "stringValue": "LLM"
+                  }
+                },
+                {
+                  "key": "llm.model_name",
+                  "value": {
+                    "stringValue": "gpt-4o-mini"
+                  }
+                },
+                {
+                  "key": "llm.provider",
+                  "value": {
+                    "stringValue": "openai"
+                  }
+                },
+                {
+                  "key": "input.value",
+                  "value": {
+                    "stringValue": "{\"messages\": [{\"role\": \"system\", \"content\": \"You are a weather assistant.\"}, {\"role\": \"user\", \"content\": \"What is the weather in Paris right now, in one line?\"}, {\"role\": \"assistant\", \"tool_calls\": [{\"id\": \"call_1\", \"function\": {\"name\": \"get_weather\", \"arguments\": \"{\\\"city\\\": \\\"Paris\\\"}\"}}]}, {\"role\": \"tool\", \"content\": \"{\\\"temp_c\\\": 18, \\\"sky\\\": \\\"overcast\\\", \\\"rain_later\\\": true}\"}]}"
+                  }
+                },
+                {
+                  "key": "input.mime_type",
+                  "value": {
+                    "stringValue": "application/json"
+                  }
+                },
+                {
+                  "key": "output.value",
+                  "value": {
+                    "stringValue": "Paris is 18 C and overcast, with light rain expected this evening."
+                  }
+                },
+                {
+                  "key": "llm.token_count.prompt",
+                  "value": {
+                    "intValue": "112"
+                  }
+                },
+                {
+                  "key": "llm.token_count.completion",
+                  "value": {
+                    "intValue": "19"
+                  }
+                },
+                {
+                  "key": "llm.token_count.total",
+                  "value": {
+                    "intValue": "131"
+                  }
+                },
+                {
+                  "key": "llm.token_count.prompt_details.cache_read",
+                  "value": {
+                    "intValue": "48"
+                  }
+                },
+                {
+                  "key": "llm.input_messages.0.message.role",
+                  "value": {
+                    "stringValue": "system"
+                  }
+                },
+                {
+                  "key": "llm.input_messages.0.message.content",
+                  "value": {
+                    "stringValue": "You are a weather assistant."
+                  }
+                },
+                {
+                  "key": "llm.input_messages.1.message.role",
+                  "value": {
+                    "stringValue": "user"
+                  }
+                },
+                {
+                  "key": "llm.input_messages.1.message.content",
+                  "value": {
+                    "stringValue": "What is the weather in Paris right now, in one line?"
+                  }
+                },
+                {
+                  "key": "llm.input_messages.2.message.role",
+                  "value": {
+                    "stringValue": "assistant"
+                  }
+                },
+                {
+                  "key": "llm.input_messages.2.message.tool_calls.0.tool_call.id",
+                  "value": {
+                    "stringValue": "call_1"
+                  }
+                },
+                {
+                  "key": "llm.input_messages.2.message.tool_calls.0.tool_call.function.name",
+                  "value": {
+                    "stringValue": "get_weather"
+                  }
+                },
+                {
+                  "key": "llm.input_messages.2.message.tool_calls.0.tool_call.function.arguments",
+                  "value": {
+                    "stringValue": "{\"city\": \"Paris\"}"
+                  }
+                },
+                {
+                  "key": "llm.input_messages.3.message.role",
+                  "value": {
+                    "stringValue": "tool"
+                  }
+                },
+                {
+                  "key": "llm.input_messages.3.message.content",
+                  "value": {
+                    "stringValue": "{\"temp_c\": 18, \"sky\": \"overcast\", \"rain_later\": true}"
+                  }
+                },
+                {
+                  "key": "llm.output_messages.0.message.role",
+                  "value": {
+                    "stringValue": "assistant"
+                  }
+                },
+                {
+                  "key": "llm.output_messages.0.message.content",
+                  "value": {
+                    "stringValue": "Paris is 18 C and overcast, with light rain expected this evening."
+                  }
+                }
+              ],
+              "status": {
+                "code": 0
+              }
+            },
+            {
+              "traceId": "32a65d53561a7e6d78e93c6c9f79a37d",
+              "spanId": "9c9731469fd94449",
+              "parentSpanId": "09aad1a2142ce935",
+              "name": "guardrail",
+              "kind": 1,
+              "startTimeUnixNano": "1789594067873967000",
+              "endTimeUnixNano": "1789594067876665000",
+              "attributes": [
+                {
+                  "key": "openinference.span.kind",
+                  "value": {
+                    "stringValue": "GUARDRAIL"
+                  }
+                },
+                {
+                  "key": "input.value",
+                  "value": {
+                    "stringValue": "Paris is 18 C and overcast, with light rain expected this evening."
+                  }
+                },
+                {
+                  "key": "output.value",
+                  "value": {
+                    "stringValue": "pass"
+                  }
+                }
+              ],
+              "status": {
+                "code": 2,
+                "message": "guardrail service timed out"
+              }
+            },
+            {
+              "traceId": "32a65d53561a7e6d78e93c6c9f79a37d",
+              "spanId": "09aad1a2142ce935",
+              "name": "agent",
+              "kind": 1,
+              "startTimeUnixNano": "1789594067806016000",
+              "endTimeUnixNano": "1789594067876665000",
+              "attributes": [
+                {
+                  "key": "openinference.span.kind",
+                  "value": {
+                    "stringValue": "AGENT"
+                  }
+                },
+                {
+                  "key": "input.value",
+                  "value": {
+                    "stringValue": "What is the weather in Paris right now, in one line?"
+                  }
+                },
+                {
+                  "key": "output.value",
+                  "value": {
+                    "stringValue": "Paris is 18 C and overcast, with light rain expected this evening."
+                  }
+                }
+              ],
+              "status": {
+                "code": 0
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
