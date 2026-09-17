@@ -38,6 +38,11 @@ their content blocks and tool calls, the tools offered, and the invocation
 parameters. A span without them still shows its name, timing, status and
 whatever attributes it has.
 
+The find box above the tree searches span names and every attribute value,
+messages included, dims the spans that do not match, and Enter jumps to the
+first one that does. In a long agent run that is how you get from "which call
+mentioned the refund" to the call.
+
 ## Running it
 
 Static files, no build. Open the folder from any local web server; the sample

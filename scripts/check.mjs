@@ -38,4 +38,8 @@ console.log(JSON.stringify(out, null, 1))
 await send("Runtime.evaluate", { expression: `[...document.querySelectorAll("#tree .span")].filter(r => r.querySelector(".kind").textContent === "LLM")[1].click()` })
 const r2 = await send("Runtime.evaluate", { expression: `JSON.stringify({ detail: document.querySelector("#detail h2").textContent, facts: [...document.querySelectorAll("#detail .facts div")].map(d => d.textContent), messages: [...document.querySelectorAll("#detail .msg")].map(m => m.textContent.split(String.fromCharCode(10)).join(" ").trim().slice(0, 90)) })`, returnByValue: true })
 console.log(JSON.stringify(JSON.parse(r2.result.value), null, 1))
+// Type into the find box and read the dimmed count.
+await send("Runtime.evaluate", { expression: `const f = document.getElementById("find"); f.value = "get_weather"; f.dispatchEvent(new Event("input"))` })
+const r3 = await send("Runtime.evaluate", { expression: `JSON.stringify({ find: document.getElementById("findCount").textContent, dimmed: document.querySelectorAll("#tree .span.dim").length })`, returnByValue: true })
+console.log(JSON.stringify(JSON.parse(r3.result.value)))
 chrome.kill(); server.close(); process.exit(0)

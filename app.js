@@ -8,6 +8,8 @@ const work = document.getElementById("work")
 const tree = document.getElementById("tree")
 const treeTitle = document.getElementById("treeTitle")
 const detail = document.getElementById("detail")
+const findBox = document.getElementById("find")
+const findCount = document.getElementById("findCount")
 
 const KIND_COLOR = { LLM: "var(--llm)", TOOL: "var(--tool)", CHAIN: "var(--chain)", AGENT: "var(--agent)", RETRIEVER: "var(--retriever)", EMBEDDING: "var(--retriever)", RERANKER: "var(--retriever)", GUARDRAIL: "var(--bad)", EVALUATOR: "var(--ok)" }
 
@@ -87,7 +89,26 @@ function normalise(doc) {
 
 // ---- the tree ------------------------------------------------------------
 
-let spans = [], selected = null
+let spans = [], selected = null, shown = []
+
+// A span matches when the text is in its name or in any attribute value.
+function matches(s, needle) {
+  if (!needle) return true
+  if (s.name.toLowerCase().includes(needle)) return true
+  return Object.values(s.attrs).some((v) => String(v).toLowerCase().includes(needle))
+}
+
+function applyFind() {
+  const needle = findBox.value.trim().toLowerCase()
+  let hits = 0
+  for (const row of tree.children) {
+    const s = shown.find((x) => x.id === row.dataset.id)
+    const hit = matches(s, needle)
+    row.classList.toggle("dim", needle && !hit)
+    if (hit) hits++
+  }
+  findCount.textContent = needle ? `${hits} of ${shown.length}` : ""
+}
 
 function traceIds() {
   const seen = new Map()
@@ -128,6 +149,8 @@ function showTrace(id, list) {
     return row
   }))
   work.hidden = false
+  shown = list
+  applyFind()
   select(rows[0]?.[0] ?? null)
 }
 
@@ -209,6 +232,13 @@ function load(text, label) {
   showTrace(...traces[0])
 }
 
+findBox.addEventListener("input", applyFind)
+findBox.addEventListener("keydown", (e) => {
+  if (e.key !== "Enter") return
+  const needle = findBox.value.trim().toLowerCase()
+  const first = shown.find((s) => matches(s, needle))
+  if (first) select(first)
+})
 fileBox.addEventListener("change", async () => { const f = fileBox.files?.[0]; if (f) load(await f.text(), f.name) })
 drop.addEventListener("dragover", (e) => { e.preventDefault(); drop.classList.add("over") })
 drop.addEventListener("dragleave", () => drop.classList.remove("over"))

@@ -37,6 +37,11 @@
   .pane { background: var(--panel); border: 1px solid var(--edge); border-radius: 12px; padding: 10px 12px; min-width: 0; }
   .pane h2 { margin: 0 0 8px; font-size: 0.8rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
 
+  .find { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
+  .find input { flex: 1; background: var(--ground); color: var(--ink); border: 1px solid var(--edge); border-radius: 8px; padding: 6px 10px; font: inherit; min-width: 0; }
+  .find input:focus { outline: 1px solid var(--accent); }
+  .find small { color: var(--muted); white-space: nowrap; }
+  .span.dim { opacity: 0.35; }
   .span { display: grid; grid-template-columns: auto 1fr auto; gap: 8px; align-items: center; padding: 5px 6px; border-radius: 8px; cursor: pointer; }
   .span:hover { background: rgb(255 255 255 / 0.04); }
   .span.on { background: rgb(88 166 255 / 0.12); }
@@ -85,6 +90,7 @@
 <div class="work" id="work" hidden>
   <section class="pane">
     <h2 id="treeTitle">Spans</h2>
+    <div class="find"><input id="find" placeholder="find in names, messages, attributes" autocomplete="off" spellcheck="false" /><small id="findCount"></small></div>
     <div id="tree"></div>
   </section>
   <section class="pane" id="detail">
