@@ -40,6 +40,17 @@ as raw JSON. Tools offered, invocation parameters and exception events each
 get a section. Everything else goes into a plain table at the bottom, minus
 the keys already shown, so nothing in the file is hidden.
 
+## Several files, one list
+
+A day of exports is a folder of files, and the same span can appear in two
+of them when a collector rotates files mid-trace. Every dropped file is read
+on its own, its spans are added to one list, and a span whose trace id and
+span id have been seen already is skipped. A file that does not parse is
+named in the status line and the rest still load; the page only refuses when
+nothing at all was found. The check drops the SDK sample, the RAG sample and
+the OTLP copy of the first together and must show two traces of five and
+four spans, not three traces or ten spans.
+
 ## The check
 
 `scripts/check.mjs` serves the folder, opens the page in headless Chrome and

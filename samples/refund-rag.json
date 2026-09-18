@@ -1,0 +1,144 @@
+[
+  {
+    "name": "embed",
+    "context": {
+      "trace_id": "0xec81d3018dd0b25c86cb4dc10f6b497b",
+      "span_id": "0xab2201446e051790",
+      "trace_state": "[]"
+    },
+    "kind": "SpanKind.INTERNAL",
+    "parent_id": "0x551bf3b94515b833",
+    "start_time": "2026-09-18T11:03:38.675094Z",
+    "end_time": "2026-09-18T11:03:38.688003Z",
+    "status": {
+      "status_code": "UNSET"
+    },
+    "attributes": {
+      "openinference.span.kind": "EMBEDDING",
+      "embedding.model_name": "text-embedding-3-small",
+      "embedding.embeddings.0.embedding.text": "What does the refund policy say about digital goods?"
+    },
+    "events": [],
+    "links": [],
+    "resource": {
+      "attributes": {
+        "telemetry.sdk.language": "python",
+        "telemetry.sdk.name": "opentelemetry",
+        "telemetry.sdk.version": "1.44.0",
+        "service.instance.id": "528c58bb-6c17-44b4-98e0-243e237754e6",
+        "service.name": "unknown_service"
+      },
+      "schema_url": ""
+    }
+  },
+  {
+    "name": "search",
+    "context": {
+      "trace_id": "0xec81d3018dd0b25c86cb4dc10f6b497b",
+      "span_id": "0x6472bdb159219d01",
+      "trace_state": "[]"
+    },
+    "kind": "SpanKind.INTERNAL",
+    "parent_id": "0x551bf3b94515b833",
+    "start_time": "2026-09-18T11:03:38.688003Z",
+    "end_time": "2026-09-18T11:03:38.704059Z",
+    "status": {
+      "status_code": "UNSET"
+    },
+    "attributes": {
+      "openinference.span.kind": "RETRIEVER",
+      "input.value": "What does the refund policy say about digital goods?",
+      "retrieval.documents.0.document.id": "policy-7",
+      "retrieval.documents.1.document.id": "policy-2",
+      "retrieval.documents.0.document.content": "Digital goods are refundable within 14 days if not downloaded.",
+      "retrieval.documents.1.document.content": "Physical goods may be returned within 30 days of delivery.",
+      "retrieval.documents.0.document.score": 0.91,
+      "retrieval.documents.1.document.score": 0.44
+    },
+    "events": [],
+    "links": [],
+    "resource": {
+      "attributes": {
+        "telemetry.sdk.language": "python",
+        "telemetry.sdk.name": "opentelemetry",
+        "telemetry.sdk.version": "1.44.0",
+        "service.instance.id": "528c58bb-6c17-44b4-98e0-243e237754e6",
+        "service.name": "unknown_service"
+      },
+      "schema_url": ""
+    }
+  },
+  {
+    "name": "ChatCompletion",
+    "context": {
+      "trace_id": "0xec81d3018dd0b25c86cb4dc10f6b497b",
+      "span_id": "0x3642d57515dfe213",
+      "trace_state": "[]"
+    },
+    "kind": "SpanKind.INTERNAL",
+    "parent_id": "0x551bf3b94515b833",
+    "start_time": "2026-09-18T11:03:38.704059Z",
+    "end_time": "2026-09-18T11:03:38.724984Z",
+    "status": {
+      "status_code": "UNSET"
+    },
+    "attributes": {
+      "openinference.span.kind": "LLM",
+      "llm.model_name": "gpt-4o-mini",
+      "llm.provider": "openai",
+      "llm.token_count.prompt": 143,
+      "llm.token_count.completion": 24,
+      "llm.token_count.total": 167,
+      "llm.input_messages.0.message.role": "system",
+      "llm.input_messages.0.message.content": "Answer from the passages only.\n\nDigital goods are refundable within 14 days if not downloaded.\nPhysical goods may be returned within 30 days of delivery.",
+      "llm.input_messages.1.message.role": "user",
+      "llm.input_messages.1.message.content": "What does the refund policy say about digital goods?",
+      "llm.output_messages.0.message.role": "assistant",
+      "llm.output_messages.0.message.content": "Digital goods can be refunded within 14 days as long as they have not been downloaded."
+    },
+    "events": [],
+    "links": [],
+    "resource": {
+      "attributes": {
+        "telemetry.sdk.language": "python",
+        "telemetry.sdk.name": "opentelemetry",
+        "telemetry.sdk.version": "1.44.0",
+        "service.instance.id": "528c58bb-6c17-44b4-98e0-243e237754e6",
+        "service.name": "unknown_service"
+      },
+      "schema_url": ""
+    }
+  },
+  {
+    "name": "rag",
+    "context": {
+      "trace_id": "0xec81d3018dd0b25c86cb4dc10f6b497b",
+      "span_id": "0x551bf3b94515b833",
+      "trace_state": "[]"
+    },
+    "kind": "SpanKind.INTERNAL",
+    "parent_id": null,
+    "start_time": "2026-09-18T11:03:38.664657Z",
+    "end_time": "2026-09-18T11:03:38.724984Z",
+    "status": {
+      "status_code": "UNSET"
+    },
+    "attributes": {
+      "openinference.span.kind": "CHAIN",
+      "input.value": "What does the refund policy say about digital goods?",
+      "output.value": "Digital goods can be refunded within 14 days as long as they have not been downloaded."
+    },
+    "events": [],
+    "links": [],
+    "resource": {
+      "attributes": {
+        "telemetry.sdk.language": "python",
+        "telemetry.sdk.name": "opentelemetry",
+        "telemetry.sdk.version": "1.44.0",
+        "service.instance.id": "528c58bb-6c17-44b4-98e0-243e237754e6",
+        "service.name": "unknown_service"
+      },
+      "schema_url": ""
+    }
+  }
+]

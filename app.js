@@ -204,6 +204,15 @@ function select(s) {
   if (!inMsgs.length && a["input.value"] != null) parts.push(el("h3", { text: "Input" }), el("pre", { text: pretty(String(a["input.value"])) }))
   if (!outMsgs.length && a["output.value"] != null) parts.push(el("h3", { text: "Output" }), el("pre", { text: pretty(String(a["output.value"])) }))
 
+  // Retriever spans carry their hits as retrieval.documents.N.document.*
+  const docs = []
+  for (const [k, v] of Object.entries(a)) {
+    const m = k.match(/^retrieval\.documents\.(\d+)\.document\.(id|content|score)$/)
+    if (m) (docs[+m[1]] ??= {})[m[2]] = v
+  }
+  const hits = docs.filter(Boolean)
+  if (hits.length) parts.push(el("h3", { text: `Documents retrieved (${hits.length})` }), ...hits.map((d) => el("div", { class: "msg tool" }, el("div", { class: "role", text: [d.id, d.score != null ? `score ${Number(d.score).toFixed(2)}` : ""].filter(Boolean).join(", ") || "document" }), el("div", { text: d.content ?? "" }))))
+
   const tools = Object.entries(a).filter(([k]) => /^llm\.tools\.\d+\.tool\.json_schema$/.test(k)).map(([, v]) => v)
   if (tools.length) parts.push(el("h3", { text: `Tools offered (${tools.length})` }), el("pre", { text: tools.map((t) => pretty(String(t))).join("\n\n") }))
   if (a["llm.invocation_parameters"]) parts.push(el("h3", { text: "Invocation parameters" }), el("pre", { text: pretty(String(a["llm.invocation_parameters"])) }))
@@ -211,7 +220,7 @@ function select(s) {
   const exceptions = s.events.filter((e) => e.name === "exception")
   for (const e of exceptions) { const ea = flatten(e.attributes); parts.push(el("h3", { text: "Exception" }), el("pre", { text: `${ea["exception.type"] ?? ""}: ${ea["exception.message"] ?? ""}\n${ea["exception.stacktrace"] ?? ""}`.trim() })) }
 
-  const shown = /^(openinference\.span\.kind|llm\.(model_name|provider|token_count\..*|input_messages\..*|output_messages\..*|tools\..*|invocation_parameters)|input\.(value|mime_type)|output\.(value|mime_type)|tool\.name)$/
+  const shown = /^(openinference\.span\.kind|llm\.(model_name|provider|token_count\..*|input_messages\..*|output_messages\..*|tools\..*|invocation_parameters)|input\.(value|mime_type)|output\.(value|mime_type)|tool\.name|retrieval\.documents\..*)$/
   const rest = Object.entries(a).filter(([k]) => !shown.test(k))
   if (rest.length) parts.push(el("h3", { text: "Other attributes" }), el("table", {}, ...rest.map(([k, v]) => el("tr", {}, el("td", { text: k }), el("td", { text: typeof v === "string" ? v : JSON.stringify(v) })))))
   detail.replaceChildren(...parts)
@@ -219,12 +228,24 @@ function select(s) {
 
 // ---- loading -------------------------------------------------------------
 
-function load(text, label) {
-  try {
-    spans = normalise(parseLoose(text)).filter((s) => s.id && s.traceId)
-    if (!spans.length) throw new Error("No spans found in that file. Retrace reads OpenTelemetry spans as JSON.")
-  } catch (err) { status.textContent = err.message; return }
-  status.textContent = ""
+// Several files at once (a folder of exports) become one list; a span that
+// appears in two files is kept once, so overlapping exports do not double up.
+function load(texts, label) {
+  const files = Array.isArray(texts) ? texts : [texts]
+  const seen = new Set()
+  const problems = []
+  spans = []
+  for (const [i, text] of files.entries()) {
+    try {
+      for (const s of normalise(parseLoose(text))) {
+        if (!s.id || !s.traceId || seen.has(s.traceId + s.id)) continue
+        seen.add(s.traceId + s.id)
+        spans.push(s)
+      }
+    } catch (err) { problems.push(files.length > 1 ? `file ${i + 1}: ${err.message}` : err.message) }
+  }
+  if (!spans.length) { status.textContent = problems[0] || "No spans found. Retrace reads OpenTelemetry spans as JSON."; return }
+  status.textContent = problems.join(" ")
   const traces = traceIds()
   tracesBar.replaceChildren(...(traces.length > 1 ? traces.map(([id, list], i) => el("button", { type: "button", onclick: (e) => { for (const b of tracesBar.children) b.classList.remove("on"); e.currentTarget.classList.add("on"); showTrace(id, list) }, text: `Trace ${i + 1}: ${list.find((s) => !list.some((x) => x.id === s.parentId))?.name ?? id.slice(0, 8)} (${list.length})` })) : []))
   tracesBar.firstChild?.classList.add("on")
@@ -239,9 +260,14 @@ findBox.addEventListener("keydown", (e) => {
   const first = shown.find((s) => matches(s, needle))
   if (first) select(first)
 })
-fileBox.addEventListener("change", async () => { const f = fileBox.files?.[0]; if (f) load(await f.text(), f.name) })
+async function loadFiles(list) {
+  const files = [...(list || [])].filter((f) => !f.name.startsWith("."))
+  if (!files.length) return
+  load(await Promise.all(files.map((f) => f.text())), files.length === 1 ? files[0].name : `${files.length} files`)
+}
+fileBox.addEventListener("change", () => loadFiles(fileBox.files))
 drop.addEventListener("dragover", (e) => { e.preventDefault(); drop.classList.add("over") })
 drop.addEventListener("dragleave", () => drop.classList.remove("over"))
-drop.addEventListener("drop", async (e) => { e.preventDefault(); drop.classList.remove("over"); const f = e.dataTransfer.files?.[0]; if (f) load(await f.text(), f.name) })
+drop.addEventListener("drop", (e) => { e.preventDefault(); drop.classList.remove("over"); loadFiles(e.dataTransfer.files) })
 document.getElementById("sample").addEventListener("click", async () => load(await (await fetch("samples/weather-agent.json")).text(), "weather agent sample"))
 if (new URLSearchParams(location.search).has("sample")) document.getElementById("sample").click()

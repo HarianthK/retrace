@@ -6,7 +6,7 @@ import { readFileSync } from "node:fs"
 import { dirname, join } from "node:path"
 import { fileURLToPath } from "node:url"
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..")
-const sample = process.argv[2] || "samples/weather-agent.json"
+const samples = process.argv.slice(2).length ? process.argv.slice(2) : ["samples/weather-agent.json"]
 const server = http.createServer((req, res) => {
   const file = req.url.split("?")[0] === "/" ? "/index.html" : decodeURIComponent(req.url.split("?")[0])
   try { res.setHeader("content-type", file.endsWith(".js") ? "text/javascript" : file.endsWith(".json") ? "application/json" : "text/html"); res.end(readFileSync(join(ROOT, file))) }
@@ -22,10 +22,11 @@ const send = (method, params = {}) => new Promise((resolve) => { const me = ++id
 await new Promise((r) => ws.addEventListener("open", r))
 await new Promise((r) => setTimeout(r, 800))
 // Feed the file through the same load() path the drop zone uses, via a fetch of the served sample.
-await send("Runtime.evaluate", { expression: `fetch(${JSON.stringify("/" + sample)}).then(r => r.text()).then(t => { const f = new File([t], ${JSON.stringify(sample)}); const dt = new DataTransfer(); dt.items.add(f); document.getElementById("drop").dispatchEvent(new DragEvent("drop", { dataTransfer: dt })) })`, awaitPromise: true })
+await send("Runtime.evaluate", { expression: `Promise.all(${JSON.stringify(samples)}.map(p => fetch("/" + p).then(r => r.text()).then(t => new File([t], p)))).then(files => { const dt = new DataTransfer(); for (const f of files) dt.items.add(f); document.getElementById("drop").dispatchEvent(new DragEvent("drop", { dataTransfer: dt })) })`, awaitPromise: true })
 await new Promise((r) => setTimeout(r, 800))
 const r = await send("Runtime.evaluate", { expression: `JSON.stringify({
   status: document.getElementById("status").textContent,
+  traces: [...document.querySelectorAll("#traces button")].map(b => b.textContent),
   title: document.getElementById("treeTitle").textContent,
   rows: [...document.querySelectorAll("#tree .span")].map(r => r.querySelector(".kind").textContent + " " + r.querySelector(".name").textContent + " " + r.querySelector(".time").textContent + " @" + r.style.paddingLeft),
   detail: document.querySelector("#detail h2").textContent,
@@ -42,4 +43,8 @@ console.log(JSON.stringify(JSON.parse(r2.result.value), null, 1))
 await send("Runtime.evaluate", { expression: `const f = document.getElementById("find"); f.value = "get_weather"; f.dispatchEvent(new Event("input"))` })
 const r3 = await send("Runtime.evaluate", { expression: `JSON.stringify({ find: document.getElementById("findCount").textContent, dimmed: document.querySelectorAll("#tree .span.dim").length })`, returnByValue: true })
 console.log(JSON.stringify(JSON.parse(r3.result.value)))
+// If a second trace exists, open it and read the retriever span.
+await send("Runtime.evaluate", { expression: `document.querySelectorAll("#traces button")[1]?.click(); [...document.querySelectorAll("#tree .span")].find(r => r.querySelector(".kind").textContent === "RETRIEVER")?.click()` })
+const r4 = await send("Runtime.evaluate", { expression: `JSON.stringify({ detail: document.querySelector("#detail h2").textContent, headings: [...document.querySelectorAll("#detail h3")].map(h => h.textContent), docs: [...document.querySelectorAll("#detail .msg .role")].map(d => d.textContent) })`, returnByValue: true })
+console.log(JSON.stringify(JSON.parse(r4.result.value)))
 chrome.kill(); server.close(); process.exit(0)

@@ -38,6 +38,12 @@ their content blocks and tool calls, the tools offered, and the invocation
 parameters. A span without them still shows its name, timing, status and
 whatever attributes it has.
 
+Several files can be dropped at once, a folder of exports for instance; they
+become one list of traces, and a span that appears in two files is kept once,
+so overlapping exports do not double up. Retriever spans list the documents
+they returned with their scores. The second sample, `refund-rag.json`, is a
+retrieval run exported the same way as the first.
+
 The find box above the tree searches span names and every attribute value,
 messages included, dims the spans that do not match, and Enter jumps to the
 first one that does. In a long agent run that is how you get from "which call
@@ -50,8 +56,9 @@ is fetched, so `file://` will not load it.
 
     npx serve .
 
-`node scripts/check.mjs samples/weather-agent.json` opens the page in headless
-Chrome, drops the file in, and prints the tree and the detail pane as text.
+`node scripts/check.mjs samples/weather-agent.json samples/refund-rag.json` opens
+the page in headless Chrome, drops the files in, and prints the traces, the tree,
+the detail pane and the retriever's documents as text.
 `node scripts/deploy.mjs` deploys to Vercel and checks the live files match.
 
 ## Notes

@@ -77,9 +77,9 @@
 </header>
 
 <div class="drop" id="drop">
-  Drag a trace file here
+  Drag a trace file here, or several at once
   <div class="row">
-    <label class="button">Choose a file<input id="file" type="file" accept=".json,.jsonl,.txt,application/json" /></label>
+    <label class="button">Choose a file<input id="file" type="file" accept=".json,.jsonl,.txt,application/json" multiple /></label>
     <button id="sample" class="primary" type="button">Load the sample</button>
   </div>
   <small>OpenTelemetry JSON in any of the usual shapes: the Python SDK's <code>span.to_json()</code> (one or many, or as printed by the console exporter), OTLP, or a Phoenix export.</small>
