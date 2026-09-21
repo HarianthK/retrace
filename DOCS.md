@@ -21,15 +21,32 @@ objects back to back with no commas, which is not JSON, so there is a small
 scanner that walks the text and cuts it at the top-level braces, skipping
 braces inside strings. It is only used when `JSON.parse` fails.
 
-## Attribute names come in two styles
+## Attribute names come in three styles
 
-The conventions define dotted keys, and the SDK exports them that way. A
-Phoenix export nests them (`{"llm": {"model_name": ...}}`), and OTLP wraps
-every value in a typed object (`{"stringValue": ...}`). Everything is
+The conventions define dotted keys, and the SDK exports them that way. OTLP
+wraps every value in a typed object (`{"stringValue": ...}`), and some
+exporters nest the keys (`{"llm": {"model_name": ...}}`). Everything is
 flattened to dotted keys on the way in, so the rest of the page only knows
 one style. Messages are then rebuilt from those keys with one regular
 expression per message part, which is the reverse of what an instrumentor
 does when it emits them.
+
+## What Phoenix actually exports
+
+The first version guessed that Phoenix nests the attributes. It does not: I
+ran Phoenix 20.14 locally, replayed the two sample traces into it over OTLP
+and exported them both ways. The REST API (`/v1/projects/<name>/spans`)
+returns each span with flat dotted attributes, moves `openinference.span.kind`
+out of them into a `span_kind` field, and writes ISO timestamps. The Python
+client's dataframe, saved with `to_json(orient="records")`, has
+`context.span_id` and `attributes.llm.model_name` as literal column names,
+a null in every column a span does not use, and message lists kept as arrays
+of `{"message.role": ...}` objects. The reader takes `span_kind` as the kind
+when the attribute is missing, and turns a dataframe row into a span by
+stripping the `attributes.` prefix and dropping the nulls; the flattener then
+handles the message arrays like any other nested value. Both exports are in
+`samples/`, and the check script shows the same tree, messages and documents
+for them as for the file they were replayed from.
 
 ## What gets its own section
 

@@ -1,5 +1,5 @@
 // Serves the folder, opens the page in headless Chrome, loads a sample file, prints what was rendered.
-// Run: node scripts/check.mjs [samples/weather-agent.json]
+// Run: node scripts/check.mjs [samples/weather-agent.json ...]
 import { spawn } from "node:child_process"
 import http from "node:http"
 import { readFileSync } from "node:fs"

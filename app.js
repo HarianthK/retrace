@@ -48,7 +48,7 @@ function otlpValue(v) {
   return null
 }
 
-// Phoenix exports keep attributes nested ({llm: {model_name}}); the conventions are dotted keys.
+// Nested attributes ({llm: {model_name}}) become the dotted keys the conventions use.
 function flatten(obj, prefix = "", out = {}) {
   for (const [k, v] of Object.entries(obj || {})) {
     const key = prefix ? `${prefix}.${k}` : k
@@ -59,12 +59,20 @@ function flatten(obj, prefix = "", out = {}) {
   return out
 }
 
+// A Phoenix dataframe row has "context.span_id" and "attributes.x.y" as literal column names, null when unused.
+function frameAttrs(row) {
+  return Object.fromEntries(Object.entries(row).filter(([k, v]) => k.startsWith("attributes.") && v != null).map(([k, v]) => [k.slice(11), v]))
+}
+
 function fromSdk(s) {
+  const attrs = flatten(s.attributes ?? frameAttrs(s))
+  // Phoenix exports lift the kind out of the attributes into span_kind.
+  if (s.span_kind && !attrs["openinference.span.kind"]) attrs["openinference.span.kind"] = s.span_kind
   return {
-    id: hex(s.context?.span_id ?? s.span_id), traceId: hex(s.context?.trace_id ?? s.trace_id), parentId: hex(s.parent_id ?? s.parent_span_id),
+    id: hex(s.context?.span_id ?? s.span_id ?? s["context.span_id"]), traceId: hex(s.context?.trace_id ?? s.trace_id ?? s["context.trace_id"]), parentId: hex(s.parent_id ?? s.parent_span_id),
     name: s.name, start: when(s.start_time), end: when(s.end_time),
     status: (s.status?.status_code ?? s.status_code ?? "UNSET").replace("StatusCode.", ""), message: s.status?.description ?? s.status_message ?? "",
-    attrs: flatten(s.attributes), events: s.events || [],
+    attrs, events: s.events || [],
   }
 }
 
@@ -83,7 +91,7 @@ function normalise(doc) {
   if (doc.resourceSpans) return fromOtlp(doc)
   if (Array.isArray(doc.data)) return doc.data.flatMap(normalise)
   if (Array.isArray(doc.spans)) return doc.spans.flatMap(normalise)
-  if (doc.name && (doc.context || doc.span_id)) return [fromSdk(doc)]
+  if (doc.name && (doc.context || doc.span_id || doc["context.span_id"])) return [fromSdk(doc)]
   return []
 }
 
