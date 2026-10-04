@@ -30,7 +30,8 @@ Three shapes, told apart by their outline:
   most SDK JSON exporters write.
 - A Phoenix export, either the REST answer from `/v1/projects/<name>/spans`
   or a spans dataframe saved with `to_json(orient="records")`. Both came out
-  of a local Phoenix 20.14 and are in `samples/`.
+  of a local Phoenix 20.14 and are in `samples/`; Phoenix 20.19's exports were
+  checked the same way on 2026-10-03 and render identically.
 
 Attributes are read by the [OpenInference](https://github.com/Arize-ai/openinference/blob/main/spec/semantic_conventions.md)
 conventions when they are present: span kind, model and provider, token

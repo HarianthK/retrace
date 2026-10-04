@@ -2,13 +2,21 @@
 // Run: node scripts/check.mjs [samples/weather-agent.json ...]
 import { spawn } from "node:child_process"
 import http from "node:http"
-import { readFileSync } from "node:fs"
-import { dirname, join } from "node:path"
+import { existsSync, readFileSync } from "node:fs"
+import { basename, dirname, join } from "node:path"
 import { fileURLToPath } from "node:url"
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..")
-const samples = process.argv.slice(2).length ? process.argv.slice(2) : ["samples/weather-agent.json"]
+// Each file is read here, from any path, so a file outside this folder works and a missing
+// one stops the check with its name instead of rendering an error page as if it were the file.
+const samples = (process.argv.slice(2).length ? process.argv.slice(2) : ["samples/weather-agent.json"]).map((p) => {
+  const path = existsSync(p) ? p : join(ROOT, p)
+  try { return { name: basename(p), text: readFileSync(path, "utf8") } }
+  catch (e) { console.error(`check: cannot read ${p}: ${e.code}`); process.exit(1) }
+})
 const server = http.createServer((req, res) => {
   const file = req.url.split("?")[0] === "/" ? "/index.html" : decodeURIComponent(req.url.split("?")[0])
+  const sample = file.match(/^\/sample\/(\d+)$/)
+  if (sample) { res.setHeader("content-type", "application/json"); res.end(samples[Number(sample[1])].text); return }
   try { res.setHeader("content-type", file.endsWith(".js") ? "text/javascript" : file.endsWith(".json") ? "application/json" : "text/html"); res.end(readFileSync(join(ROOT, file))) }
   catch { res.statusCode = 404; res.end() }
 }).listen(4178)
@@ -21,8 +29,8 @@ let id = 0
 const send = (method, params = {}) => new Promise((resolve) => { const me = ++id; const on = (e) => { const m = JSON.parse(e.data); if (m.id === me) { ws.removeEventListener("message", on); resolve(m.result) } }; ws.addEventListener("message", on); ws.send(JSON.stringify({ id: me, method, params })) })
 await new Promise((r) => ws.addEventListener("open", r))
 await new Promise((r) => setTimeout(r, 800))
-// Feed the file through the same load() path the drop zone uses, via a fetch of the served sample.
-await send("Runtime.evaluate", { expression: `Promise.all(${JSON.stringify(samples)}.map(p => fetch("/" + p).then(r => r.text()).then(t => new File([t], p)))).then(files => { const dt = new DataTransfer(); for (const f of files) dt.items.add(f); document.getElementById("drop").dispatchEvent(new DragEvent("drop", { dataTransfer: dt })) })`, awaitPromise: true })
+// Feed the files through the same load() path the drop zone uses, via a fetch of each served sample.
+await send("Runtime.evaluate", { expression: `Promise.all(${JSON.stringify(samples.map((s) => s.name))}.map((name, i) => fetch("/sample/" + i).then(r => r.text()).then(t => new File([t], name)))).then(files => { const dt = new DataTransfer(); for (const f of files) dt.items.add(f); document.getElementById("drop").dispatchEvent(new DragEvent("drop", { dataTransfer: dt })) })`, awaitPromise: true })
 await new Promise((r) => setTimeout(r, 800))
 const r = await send("Runtime.evaluate", { expression: `JSON.stringify({
   status: document.getElementById("status").textContent,

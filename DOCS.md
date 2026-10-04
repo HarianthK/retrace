@@ -76,3 +76,17 @@ the tree rows, the facts and the messages back out of the DOM. Both samples
 must give the same tree, the second LLM span must show the cache-read count,
 and the guardrail span must carry the error flag. That is the only way the
 page has been checked, and it was run before every deploy.
+
+## Checked again against Phoenix 20.19
+
+Phoenix released five versions after the readers were fitted to 20.14. Upgrading,
+replaying the same two traces and exporting them both ways gave files with the
+same fields, and the check script rendered them exactly as it renders the 20.14
+samples: the same tree, conversation, tokens and documents, compared line by
+line.
+
+Getting there turned up a flaw in the check script. It served the files it was
+given from this folder, so a file anywhere else came back as a missing-page
+response, and the page reported "This does not look like JSON" as if Phoenix had
+changed its format. The script now reads each file itself, from any path, and a
+file it cannot read stops the check with the file's name.
