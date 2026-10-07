@@ -1,14 +1,17 @@
 // Serves the folder, opens the page in headless Chrome, loads a sample file, prints what was rendered.
-// Run: node scripts/check.mjs [samples/weather-agent.json ...]
+// Run: node scripts/check.mjs [samples/weather-agent.json ...] [--title "209 tokens"]
 import { spawn } from "node:child_process"
 import http from "node:http"
 import { existsSync, readFileSync } from "node:fs"
 import { basename, dirname, join } from "node:path"
 import { fileURLToPath } from "node:url"
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..")
+// --title makes this a check that can fail: the first trace's title must contain that text.
+const args = process.argv.slice(2)
+const wantTitle = args.includes("--title") ? args.splice(args.indexOf("--title"), 2)[1] : null
 // Each file is read here, from any path, so a file outside this folder works and a missing
 // one stops the check with its name instead of rendering an error page as if it were the file.
-const samples = (process.argv.slice(2).length ? process.argv.slice(2) : ["samples/weather-agent.json"]).map((p) => {
+const samples = (args.length ? args : ["samples/weather-agent.json"]).map((p) => {
   const path = existsSync(p) ? p : join(ROOT, p)
   try { return { name: basename(p), text: readFileSync(path, "utf8") } }
   catch (e) { console.error(`check: cannot read ${p}: ${e.code}`); process.exit(1) }
@@ -43,6 +46,10 @@ const r = await send("Runtime.evaluate", { expression: `JSON.stringify({
 })`, returnByValue: true })
 const out = JSON.parse(r.result.value)
 console.log(JSON.stringify(out, null, 1))
+if (wantTitle != null && !out.title.includes(wantTitle)) {
+  console.error(`check: the title is "${out.title}", which does not contain "${wantTitle}"`)
+  chrome.kill(); server.close(); process.exit(1)
+}
 // Click the second LLM span and read its messages.
 await send("Runtime.evaluate", { expression: `[...document.querySelectorAll("#tree .span")].filter(r => r.querySelector(".kind").textContent === "LLM")[1].click()` })
 const r2 = await send("Runtime.evaluate", { expression: `JSON.stringify({ detail: document.querySelector("#detail h2").textContent, facts: [...document.querySelectorAll("#detail .facts div")].map(d => d.textContent), messages: [...document.querySelectorAll("#detail .msg")].map(m => m.textContent.split(String.fromCharCode(10)).join(" ").trim().slice(0, 90)) })`, returnByValue: true })

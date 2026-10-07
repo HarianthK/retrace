@@ -90,3 +90,27 @@ given from this folder, so a file anywhere else came back as a missing-page
 response, and the page reported "This does not look like JSON" as if Phoenix had
 changed its format. The script now reads each file itself, from any path, and a
 file it cannot read stops the check with the file's name.
+
+## Counting a trace's tokens once
+
+The heading over the span tree now ends with the tokens the whole trace used,
+because the first thing you want from a folder of runs is which one was
+expensive. Each model span's total is used, or its prompt plus completion when
+there is no total, which is how some instrumentors record it.
+
+Summing every LLM span would be wrong, and plausibly wrong, which is worse. A
+framework such as LangChain opens its own LLM span around a call, and the
+OpenAI client's instrumentor opens another inside it; both carry the same
+counts, so a naive sum doubles that call. The rule is that a span's tokens
+count only if no span above it already carries counts, so the outermost record
+of each call wins and nested repeats are skipped. Walking up the parents is
+bounded by the number of spans, so a file whose parent links form a loop
+cannot hang the page.
+
+`scripts/fixtures/wrapped-llm.json` is a chain holding one wrapped call of 100
+tokens and one bare call recorded only as 40 + 10, so the right answer is 150.
+`check.mjs` gained `--title`, which exits with an error unless the heading
+contains the given text; counting the wrapper twice shows 250 and dropping the
+prompt-plus-completion fallback shows 100, and both fail it. The weather sample
+reads 209 tokens in every format it comes in: SDK JSON, OTLP, and both Phoenix exports.
+

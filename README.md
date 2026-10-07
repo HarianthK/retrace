@@ -46,6 +46,11 @@ so overlapping exports do not double up. Retriever spans list the documents
 they returned with their scores. The second sample, `refund-rag.json`, is a
 retrieval run exported the same way as the first.
 
+Above the tree, each trace's span count and duration come with the tokens it
+used across all its model calls, so the expensive run in a folder of exports
+stands out. A model call recorded twice, by a framework's span wrapped around
+the client library's own, is counted once.
+
 The find box above the tree searches span names and every attribute value,
 messages included, dims the spans that do not match, and Enter jumps to the
 first one that does. In a long agent run that is how you get from "which call
@@ -60,7 +65,10 @@ is fetched, so `file://` will not load it.
 
 `node scripts/check.mjs samples/weather-agent.json samples/refund-rag.json` opens
 the page in headless Chrome, drops the files in, and prints the traces, the tree,
-the detail pane and the retriever's documents as text.
+the detail pane and the retriever's documents as text. With `--title "209 tokens"`
+it also fails unless the first trace's heading contains that text, which is how
+`scripts/fixtures/wrapped-llm.json` checks that a wrapped call is counted once
+(150 tokens, not 250).
 `node scripts/deploy.mjs` deploys to Vercel and checks the live files match.
 
 ## Notes

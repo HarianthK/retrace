@@ -133,6 +133,12 @@ function el(tag, attrs = {}, ...children) {
 
 const ms = (n) => (n < 1000 ? `${Math.round(n)} ms` : `${(n / 1000).toFixed(2)} s`)
 const kindOf = (s) => (s.attrs["openinference.span.kind"] || "SPAN").toUpperCase()
+// The total if recorded, else prompt plus completion if both are; null when the span has none.
+function tokensOf(s) {
+  const a = s.attrs, total = a["llm.token_count.total"], prompt = a["llm.token_count.prompt"], completion = a["llm.token_count.completion"]
+  if (total != null) return Number(total)
+  return prompt != null && completion != null ? Number(prompt) + Number(completion) : null
+}
 
 function showTrace(id, list) {
   const t0 = Math.min(...list.map((s) => s.start)), t1 = Math.max(...list.map((s) => s.end))
@@ -144,7 +150,12 @@ function showTrace(id, list) {
   const walk = (parent, depth) => { for (const s of byParent.get(parent) || []) { rows.push([s, depth]); walk(s.id, depth + 1) } }
   walk(null, 0)
   const errors = list.filter((s) => s.status === "ERROR").length
-  treeTitle.textContent = `${list.length} spans, ${ms(total)}${errors ? `, ${errors} with errors` : ""}`
+  // One model call can show up twice, a framework's span around the client's own; counting
+  // only spans with no counted ancestor keeps it once. Bounded, in case parents form a loop.
+  const byId = new Map(list.map((s) => [s.id, s]))
+  const counted = (s) => { let p = byId.get(s.parentId); for (let n = 0; p && n < list.length; n++, p = byId.get(p.parentId)) if (tokensOf(p) != null) return false; return true }
+  const tokens = list.filter((s) => tokensOf(s) != null && counted(s)).reduce((sum, s) => sum + tokensOf(s), 0)
+  treeTitle.textContent = `${list.length} spans, ${ms(total)}${tokens ? `, ${tokens.toLocaleString("en")} tokens` : ""}${errors ? `, ${errors} with errors` : ""}`
   tree.replaceChildren(...rows.map(([s, depth]) => {
     const kind = kindOf(s)
     const row = el("div", { class: "span", style: `padding-left:${6 + depth * 16}px`, onclick: () => select(s) },
