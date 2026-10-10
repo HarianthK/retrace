@@ -114,3 +114,12 @@ contains the given text; counting the wrapper twice shows 250 and dropping the
 prompt-plus-completion fallback shows 100, and both fail it. The weather sample
 reads 209 tokens in every format it comes in: SDK JSON, OTLP, and both Phoenix exports.
 
+The same total now sits on each trace's button, "Trace 2: chain (4 spans, 150
+tokens)", because with a folder of runs dropped in, the point is to find the
+expensive one without opening each. The count moved into one function that both
+the heading and the buttons call, so they cannot disagree. `check.mjs` gained
+`--traces`, the button row's version of `--title`: loading the weather sample and
+the wrapped-call fixture together, it fails if the second button does not read
+150 tokens, which happens both when the buttons lose their totals and when the
+wrapped call is counted twice.
+

@@ -140,6 +140,14 @@ function tokensOf(s) {
   return prompt != null && completion != null ? Number(prompt) + Number(completion) : null
 }
 
+// One model call can show up twice, a framework's span around the client's own; counting
+// only spans with no counted ancestor keeps it once. Bounded, in case parents form a loop.
+function traceTokens(list) {
+  const byId = new Map(list.map((s) => [s.id, s]))
+  const counted = (s) => { let p = byId.get(s.parentId); for (let n = 0; p && n < list.length; n++, p = byId.get(p.parentId)) if (tokensOf(p) != null) return false; return true }
+  return list.filter((s) => tokensOf(s) != null && counted(s)).reduce((sum, s) => sum + tokensOf(s), 0)
+}
+
 function showTrace(id, list) {
   const t0 = Math.min(...list.map((s) => s.start)), t1 = Math.max(...list.map((s) => s.end))
   const total = Math.max(1, t1 - t0)
@@ -150,11 +158,7 @@ function showTrace(id, list) {
   const walk = (parent, depth) => { for (const s of byParent.get(parent) || []) { rows.push([s, depth]); walk(s.id, depth + 1) } }
   walk(null, 0)
   const errors = list.filter((s) => s.status === "ERROR").length
-  // One model call can show up twice, a framework's span around the client's own; counting
-  // only spans with no counted ancestor keeps it once. Bounded, in case parents form a loop.
-  const byId = new Map(list.map((s) => [s.id, s]))
-  const counted = (s) => { let p = byId.get(s.parentId); for (let n = 0; p && n < list.length; n++, p = byId.get(p.parentId)) if (tokensOf(p) != null) return false; return true }
-  const tokens = list.filter((s) => tokensOf(s) != null && counted(s)).reduce((sum, s) => sum + tokensOf(s), 0)
+  const tokens = traceTokens(list)
   treeTitle.textContent = `${list.length} spans, ${ms(total)}${tokens ? `, ${tokens.toLocaleString("en")} tokens` : ""}${errors ? `, ${errors} with errors` : ""}`
   tree.replaceChildren(...rows.map(([s, depth]) => {
     const kind = kindOf(s)
@@ -266,7 +270,7 @@ function load(texts, label) {
   if (!spans.length) { status.textContent = problems[0] || "No spans found. Retrace reads OpenTelemetry spans as JSON."; return }
   status.textContent = problems.join(" ")
   const traces = traceIds()
-  tracesBar.replaceChildren(...(traces.length > 1 ? traces.map(([id, list], i) => el("button", { type: "button", onclick: (e) => { for (const b of tracesBar.children) b.classList.remove("on"); e.currentTarget.classList.add("on"); showTrace(id, list) }, text: `Trace ${i + 1}: ${list.find((s) => !list.some((x) => x.id === s.parentId))?.name ?? id.slice(0, 8)} (${list.length})` })) : []))
+  tracesBar.replaceChildren(...(traces.length > 1 ? traces.map(([id, list], i) => el("button", { type: "button", onclick: (e) => { for (const b of tracesBar.children) b.classList.remove("on"); e.currentTarget.classList.add("on"); showTrace(id, list) }, text: `Trace ${i + 1}: ${list.find((s) => !list.some((x) => x.id === s.parentId))?.name ?? id.slice(0, 8)} (${list.length} spans${traceTokens(list) ? `, ${traceTokens(list).toLocaleString("en")} tokens` : ""})` })) : []))
   tracesBar.firstChild?.classList.add("on")
   document.title = `Retrace: ${label}`
   showTrace(...traces[0])

@@ -1,5 +1,5 @@
 // Serves the folder, opens the page in headless Chrome, loads a sample file, prints what was rendered.
-// Run: node scripts/check.mjs [samples/weather-agent.json ...] [--title "209 tokens"]
+// Run: node scripts/check.mjs [samples/weather-agent.json ...] [--title "209 tokens"] [--traces "167 tokens"]
 import { spawn } from "node:child_process"
 import http from "node:http"
 import { existsSync, readFileSync } from "node:fs"
@@ -9,6 +9,8 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..")
 // --title makes this a check that can fail: the first trace's title must contain that text.
 const args = process.argv.slice(2)
 const wantTitle = args.includes("--title") ? args.splice(args.indexOf("--title"), 2)[1] : null
+// --traces does the same for the row of trace buttons, read as one line of text.
+const wantTraces = args.includes("--traces") ? args.splice(args.indexOf("--traces"), 2)[1] : null
 // Each file is read here, from any path, so a file outside this folder works and a missing
 // one stops the check with its name instead of rendering an error page as if it were the file.
 const samples = (args.length ? args : ["samples/weather-agent.json"]).map((p) => {
@@ -48,6 +50,10 @@ const out = JSON.parse(r.result.value)
 console.log(JSON.stringify(out, null, 1))
 if (wantTitle != null && !out.title.includes(wantTitle)) {
   console.error(`check: the title is "${out.title}", which does not contain "${wantTitle}"`)
+  chrome.kill(); server.close(); process.exit(1)
+}
+if (wantTraces != null && !out.traces.join(" | ").includes(wantTraces)) {
+  console.error(`check: the traces read "${out.traces.join(" | ")}", which does not contain "${wantTraces}"`)
   chrome.kill(); server.close(); process.exit(1)
 }
 // Click the second LLM span and read its messages.
