@@ -1,5 +1,5 @@
 // Serves the folder, opens the page in headless Chrome, loads a sample file, prints what was rendered.
-// Run: node scripts/check.mjs [samples/weather-agent.json ...] [--title "209 tokens"] [--traces "167 tokens"]
+// Run: node scripts/check.mjs [samples/weather-agent.json ...] [--title "209 tokens"] [--traces "167 tokens"] [--messages "get_weather"]
 import { spawn } from "node:child_process"
 import http from "node:http"
 import { existsSync, readFileSync } from "node:fs"
@@ -11,6 +11,8 @@ const args = process.argv.slice(2)
 const wantTitle = args.includes("--title") ? args.splice(args.indexOf("--title"), 2)[1] : null
 // --traces does the same for the row of trace buttons, read as one line of text.
 const wantTraces = args.includes("--traces") ? args.splice(args.indexOf("--traces"), 2)[1] : null
+// --messages: the second LLM span's conversation, read as one line, must contain the text.
+const wantMessages = args.includes("--messages") ? args.splice(args.indexOf("--messages"), 2)[1] : null
 // Each file is read here, from any path, so a file outside this folder works and a missing
 // one stops the check with its name instead of rendering an error page as if it were the file.
 const samples = (args.length ? args : ["samples/weather-agent.json"]).map((p) => {
@@ -59,7 +61,12 @@ if (wantTraces != null && !out.traces.join(" | ").includes(wantTraces)) {
 // Click the second LLM span and read its messages.
 await send("Runtime.evaluate", { expression: `[...document.querySelectorAll("#tree .span")].filter(r => r.querySelector(".kind").textContent === "LLM")[1].click()` })
 const r2 = await send("Runtime.evaluate", { expression: `JSON.stringify({ detail: document.querySelector("#detail h2").textContent, facts: [...document.querySelectorAll("#detail .facts div")].map(d => d.textContent), messages: [...document.querySelectorAll("#detail .msg")].map(m => m.textContent.split(String.fromCharCode(10)).join(" ").trim().slice(0, 90)) })`, returnByValue: true })
-console.log(JSON.stringify(JSON.parse(r2.result.value), null, 1))
+const second = JSON.parse(r2.result.value)
+console.log(JSON.stringify(second, null, 1))
+if (wantMessages != null && !(second.messages || []).join(" | ").includes(wantMessages)) {
+  console.error(`check: the messages read "${(second.messages || []).join(" | ")}", which does not contain "${wantMessages}"`)
+  chrome.kill(); server.close(); process.exit(1)
+}
 // Type into the find box and read the dimmed count.
 await send("Runtime.evaluate", { expression: `const f = document.getElementById("find"); f.value = "get_weather"; f.dispatchEvent(new Event("input"))` })
 const r3 = await send("Runtime.evaluate", { expression: `JSON.stringify({ find: document.getElementById("findCount").textContent, dimmed: document.querySelectorAll("#tree .span.dim").length })`, returnByValue: true })

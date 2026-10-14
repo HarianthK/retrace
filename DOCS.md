@@ -123,3 +123,31 @@ the wrapped-call fixture together, it fails if the second button does not read
 150 tokens, which happens both when the buttons lose their totals and when the
 wrapped call is counted twice.
 
+## The other naming scheme
+
+Retrace was written against OpenInference, the attribute names Phoenix uses.
+OpenTelemetry has its own, the GenAI semantic conventions, and OpenLLMetry and
+OpenLIT write those: `gen_ai.request.model`, `gen_ai.usage.input_tokens`, and
+the conversation as `gen_ai.input.messages` and `gen_ai.output.messages`, each
+a JSON list of messages made of typed parts. A trace in that shape used to show
+span names and timings and nothing else.
+
+Now each span is translated as it loads: where a span has `gen_ai.*` names and
+no OpenInference ones, the OpenInference names are filled in from them. The
+detail pane, the token totals, the trace buttons and the find box all work from
+those names, so none of them needed changing, and a span that already carries
+OpenInference names is left exactly as it was. The translated `gen_ai.*` keys are
+hidden from the "Other attributes" table so nothing is shown twice.
+
+The sample is real instrumentor output, not a hand-written guess at the format.
+It came from OpenLLMetry's Groq instrumentor, from my own branch adding reasoning
+support, driven against a mocked Groq API: a tool call, the tool's result and an
+answer with reasoning. Loaded, it reads 104 tokens, 52 for each call, nine of
+them reasoning, and the whole conversation. `check.mjs` gained `--messages`,
+and not translating at all, dropping tool calls or dropping tool results each
+fail it.
+
+Not read yet: OpenLLMetry's older flat form, `gen_ai.prompt.0.content` and so
+on, and conversations sent as log events rather than span attributes. I have no
+real sample of either, and this format was only written from one.
+

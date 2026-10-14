@@ -40,6 +40,12 @@ their content blocks and tool calls, the tools offered, and the invocation
 parameters. A span without them still shows its name, timing, status and
 whatever attributes it has.
 
+Spans written with OpenTelemetry's own GenAI names instead, `gen_ai.*`, as
+OpenLLMetry writes them, are read too: the operation, model and provider, the
+token counts with reasoning and cache, the input and output messages with
+their text, reasoning, tool calls and tool results, and the tools offered.
+`samples/openllmetry-groq.json` is such a trace.
+
 Several files can be dropped at once, a folder of exports for instance; they
 become one list of traces, and a span that appears in two files is kept once,
 so overlapping exports do not double up. Retriever spans list the documents

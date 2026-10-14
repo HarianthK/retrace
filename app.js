@@ -86,6 +86,47 @@ function fromOtlp(doc) {
   return out
 }
 
+// OpenTelemetry's own GenAI names, as OpenLLMetry writes them, copied onto the OpenInference names the
+// rest of the page reads. A span already carrying OpenInference names is left as it is.
+const GENAI_KIND = { chat: "LLM", text_completion: "LLM", generate_content: "LLM", embeddings: "EMBEDDING", execute_tool: "TOOL", invoke_agent: "AGENT", create_agent: "AGENT" }
+function fromGenAI(a) {
+  if (a["openinference.span.kind"] || !Object.keys(a).some((k) => k.startsWith("gen_ai."))) return
+  const set = (k, v) => { if (v != null && a[k] == null) a[k] = v }
+  const text = (v) => (typeof v === "string" ? v : JSON.stringify(v))
+  set("openinference.span.kind", GENAI_KIND[a["gen_ai.operation.name"]])
+  set("llm.model_name", a["gen_ai.response.model"] ?? a["gen_ai.request.model"])
+  set("llm.provider", a["gen_ai.provider.name"] ?? a["gen_ai.system"])
+  const input = a["gen_ai.usage.input_tokens"], output = a["gen_ai.usage.output_tokens"]
+  set("llm.token_count.prompt", input)
+  set("llm.token_count.completion", output)
+  set("llm.token_count.total", a["gen_ai.usage.total_tokens"] ?? (input != null && output != null ? Number(input) + Number(output) : null))
+  set("llm.token_count.completion_details.reasoning", a["gen_ai.usage.reasoning_tokens"])
+  set("llm.token_count.prompt_details.cache_read", a["gen_ai.usage.cache_read.input_tokens"])
+  set("tool.name", a["gen_ai.tool.name"])
+  // Messages are a JSON list, each message a role and typed parts.
+  for (const [from, to] of [["gen_ai.input.messages", "llm.input_messages"], ["gen_ai.output.messages", "llm.output_messages"]]) {
+    let list
+    try { list = JSON.parse(a[from]) } catch { continue }
+    if (!Array.isArray(list)) continue
+    list.forEach((m, i) => {
+      const at = `${to}.${i}.message`
+      let c = 0, t = 0
+      set(`${at}.role`, m.role)
+      for (const p of m.parts || []) {
+        if (p.type === "text" || p.type === "reasoning" || p.type === "tool_call_response") {
+          set(`${at}.contents.${c}.message_content.type`, p.type === "reasoning" ? "reasoning" : "text")
+          set(`${at}.contents.${c++}.message_content.text`, text(p.type === "tool_call_response" ? p.response : p.content))
+          if (p.id) set(`${at}.tool_call_id`, p.id)
+        } else if (p.type === "tool_call") {
+          set(`${at}.tool_calls.${t}.tool_call.function.name`, p.name)
+          set(`${at}.tool_calls.${t++}.tool_call.function.arguments`, text(p.arguments))
+        }
+      }
+    })
+  }
+  try { JSON.parse(a["gen_ai.tool.definitions"]).forEach((d, i) => set(`llm.tools.${i}.tool.json_schema`, text(d))) } catch {}
+}
+
 function normalise(doc) {
   if (Array.isArray(doc)) return doc.flatMap(normalise)
   if (doc.resourceSpans) return fromOtlp(doc)
@@ -243,7 +284,7 @@ function select(s) {
   const exceptions = s.events.filter((e) => e.name === "exception")
   for (const e of exceptions) { const ea = flatten(e.attributes); parts.push(el("h3", { text: "Exception" }), el("pre", { text: `${ea["exception.type"] ?? ""}: ${ea["exception.message"] ?? ""}\n${ea["exception.stacktrace"] ?? ""}`.trim() })) }
 
-  const shown = /^(openinference\.span\.kind|llm\.(model_name|provider|token_count\..*|input_messages\..*|output_messages\..*|tools\..*|invocation_parameters)|input\.(value|mime_type)|output\.(value|mime_type)|tool\.name|retrieval\.documents\..*)$/
+  const shown = /^(openinference\.span\.kind|llm\.(model_name|provider|token_count\..*|input_messages\..*|output_messages\..*|tools\..*|invocation_parameters)|input\.(value|mime_type)|output\.(value|mime_type)|tool\.name|retrieval\.documents\..*|gen_ai\.((input|output)\.messages|usage\..*|(request|response)\.model|provider\.name|system|operation\.name|tool\.(name|definitions)))$/
   const rest = Object.entries(a).filter(([k]) => !shown.test(k))
   if (rest.length) parts.push(el("h3", { text: "Other attributes" }), el("table", {}, ...rest.map(([k, v]) => el("tr", {}, el("td", { text: k }), el("td", { text: typeof v === "string" ? v : JSON.stringify(v) })))))
   detail.replaceChildren(...parts)
@@ -263,6 +304,7 @@ function load(texts, label) {
       for (const s of normalise(parseLoose(text))) {
         if (!s.id || !s.traceId || seen.has(s.traceId + s.id)) continue
         seen.add(s.traceId + s.id)
+        fromGenAI(s.attrs)
         spans.push(s)
       }
     } catch (err) { problems.push(files.length > 1 ? `file ${i + 1}: ${err.message}` : err.message) }

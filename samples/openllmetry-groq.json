@@ -1,0 +1,120 @@
+[
+ {
+  "name": "chat qwen/qwen3-32b",
+  "context": {
+   "trace_id": "0x10c42323d2d88c106c6beafc5a8e946f",
+   "span_id": "0x67cdb970fc77b02f",
+   "trace_state": "[]"
+  },
+  "kind": "SpanKind.CLIENT",
+  "parent_id": "0x31c897c58a486349",
+  "start_time": "2026-10-14T00:44:27.399050Z",
+  "end_time": "2026-10-14T00:44:27.485246Z",
+  "status": {
+   "status_code": "OK"
+  },
+  "attributes": {
+   "gen_ai.provider.name": "groq",
+   "gen_ai.operation.name": "chat",
+   "gen_ai.request.model": "qwen/qwen3-32b",
+   "gen_ai.is_streaming": false,
+   "gen_ai.tool.definitions": "[{\"type\": \"function\", \"function\": {\"name\": \"get_weather\", \"description\": \"Current weather for a city\", \"parameters\": {\"type\": \"object\", \"properties\": {\"city\": {\"type\": \"string\"}}}}}]",
+   "gen_ai.input.messages": "[{\"role\": \"system\", \"parts\": [{\"type\": \"text\", \"content\": \"You are a weather assistant.\"}]}, {\"role\": \"user\", \"parts\": [{\"type\": \"text\", \"content\": \"Weather in Paris, one line?\"}]}]",
+   "gen_ai.response.finish_reasons": [
+    "tool_call"
+   ],
+   "gen_ai.response.model": "qwen/qwen3-32b",
+   "gen_ai.response.id": "chatcmpl-1",
+   "gen_ai.usage.total_tokens": 52,
+   "gen_ai.usage.output_tokens": 12,
+   "gen_ai.usage.input_tokens": 40,
+   "gen_ai.usage.reasoning_tokens": 9,
+   "gen_ai.output.messages": "[{\"role\": \"assistant\", \"parts\": [{\"type\": \"tool_call\", \"name\": \"get_weather\", \"id\": \"call_1\", \"arguments\": {\"city\": \"Paris\"}}], \"finish_reason\": \"tool_call\"}]"
+  },
+  "events": [],
+  "links": [],
+  "resource": {
+   "attributes": {
+    "telemetry.sdk.language": "python",
+    "telemetry.sdk.name": "opentelemetry",
+    "telemetry.sdk.version": "1.45.0",
+    "service.instance.id": "90344308-bd2c-4935-a348-0227f5ac33a8",
+    "service.name": "unknown_service:python.exe"
+   },
+   "schema_url": ""
+  }
+ },
+ {
+  "name": "chat qwen/qwen3-32b",
+  "context": {
+   "trace_id": "0x10c42323d2d88c106c6beafc5a8e946f",
+   "span_id": "0xe88b41ab452f2d5a",
+   "trace_state": "[]"
+  },
+  "kind": "SpanKind.CLIENT",
+  "parent_id": "0x31c897c58a486349",
+  "start_time": "2026-10-14T00:44:27.486245Z",
+  "end_time": "2026-10-14T00:44:27.486245Z",
+  "status": {
+   "status_code": "OK"
+  },
+  "attributes": {
+   "gen_ai.provider.name": "groq",
+   "gen_ai.operation.name": "chat",
+   "gen_ai.request.model": "qwen/qwen3-32b",
+   "gen_ai.is_streaming": false,
+   "gen_ai.tool.definitions": "[{\"type\": \"function\", \"function\": {\"name\": \"get_weather\", \"description\": \"Current weather for a city\", \"parameters\": {\"type\": \"object\", \"properties\": {\"city\": {\"type\": \"string\"}}}}}]",
+   "gen_ai.input.messages": "[{\"role\": \"system\", \"parts\": [{\"type\": \"text\", \"content\": \"You are a weather assistant.\"}]}, {\"role\": \"user\", \"parts\": [{\"type\": \"text\", \"content\": \"Weather in Paris, one line?\"}]}, {\"role\": \"assistant\", \"parts\": [{\"type\": \"tool_call\", \"name\": \"get_weather\", \"id\": \"call_1\", \"arguments\": {\"city\": \"Paris\"}}]}, {\"role\": \"tool\", \"parts\": [{\"type\": \"tool_call_response\", \"id\": \"call_1\", \"response\": \"{\\\"temp_c\\\": 18, \\\"sky\\\": \\\"overcast\\\"}\"}]}]",
+   "gen_ai.response.finish_reasons": [
+    "stop"
+   ],
+   "gen_ai.response.model": "qwen/qwen3-32b",
+   "gen_ai.response.id": "chatcmpl-1",
+   "gen_ai.usage.total_tokens": 52,
+   "gen_ai.usage.output_tokens": 12,
+   "gen_ai.usage.input_tokens": 40,
+   "gen_ai.usage.reasoning_tokens": 9,
+   "gen_ai.output.messages": "[{\"role\": \"assistant\", \"parts\": [{\"type\": \"text\", \"content\": \"Paris is 18 C and overcast.\"}, {\"type\": \"reasoning\", \"content\": \"The tool said 18 and overcast; one line is enough.\"}], \"finish_reason\": \"stop\"}]"
+  },
+  "events": [],
+  "links": [],
+  "resource": {
+   "attributes": {
+    "telemetry.sdk.language": "python",
+    "telemetry.sdk.name": "opentelemetry",
+    "telemetry.sdk.version": "1.45.0",
+    "service.instance.id": "90344308-bd2c-4935-a348-0227f5ac33a8",
+    "service.name": "unknown_service:python.exe"
+   },
+   "schema_url": ""
+  }
+ },
+ {
+  "name": "weather-agent",
+  "context": {
+   "trace_id": "0x10c42323d2d88c106c6beafc5a8e946f",
+   "span_id": "0x31c897c58a486349",
+   "trace_state": "[]"
+  },
+  "kind": "SpanKind.INTERNAL",
+  "parent_id": null,
+  "start_time": "2026-10-14T00:44:27.399050Z",
+  "end_time": "2026-10-14T00:44:27.488284Z",
+  "status": {
+   "status_code": "UNSET"
+  },
+  "attributes": {},
+  "events": [],
+  "links": [],
+  "resource": {
+   "attributes": {
+    "telemetry.sdk.language": "python",
+    "telemetry.sdk.name": "opentelemetry",
+    "telemetry.sdk.version": "1.45.0",
+    "service.instance.id": "90344308-bd2c-4935-a348-0227f5ac33a8",
+    "service.name": "unknown_service:python.exe"
+   },
+   "schema_url": ""
+  }
+ }
+]
