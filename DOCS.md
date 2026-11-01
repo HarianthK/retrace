@@ -147,7 +147,38 @@ them reasoning, and the whole conversation. `check.mjs` gained `--messages`,
 and not translating at all, dropping tool calls or dropping tool results each
 fail it.
 
-Not read yet: OpenLLMetry's older flat form, `gen_ai.prompt.0.content` and so
-on, and conversations sent as log events rather than span attributes. I have no
-real sample of either, and this format was only written from one.
+Not read yet: conversations sent as log events rather than span attributes. I
+have no real sample of that, and this format was only written from one.
+
+## The flat form, from a real old release
+
+OpenLLMetry did not always write a JSON list of messages. Its earlier releases
+spread each conversation over one attribute per field: `gen_ai.prompt.0.role`,
+`gen_ai.prompt.0.content`, `gen_ai.prompt.2.tool_calls.0.arguments`,
+`gen_ai.prompt.3.tool_call_id`, and `gen_ai.completion.0.*` for the answer.
+Tokens were `gen_ai.usage.prompt_tokens` and `completion_tokens`, with the total
+in `llm.usage.total_tokens`, the kind in `llm.request.type`, and the tools
+offered in `llm.request.functions.N.name`, `.description` and `.parameters`.
+Traces like this are still sitting in files from that time.
+
+To get a real one rather than a guess, I installed release 0.40.14 of its
+OpenAI instrumentor with an OpenAI client from the same period, and drove two
+chat calls against a mocked API: one that asks for a tool, then one that sees
+the tool's result and answers. The current release, 0.62.4, run the same way,
+writes the structured form instead, which is how I knew where the line was.
+The trace is `samples/openllmetry-flat.json`. Its shape is close to
+OpenInference's own, which also gives every field its own key, so the
+translation is mostly renaming: a key's index and field are kept and its
+prefix swapped. The tools are rebuilt into one JSON schema each, the way the
+structured form already shows them.
+
+`check.mjs` gained `--facts` and `--headings`, since nothing yet looked at the
+token line or which sections appeared. With all four flags the sample's check
+fails on seven of nine breakages: no flat messages at all, the answer not read,
+tool calls dropped, their arguments dropped, the old token names ignored, the
+tools not read, and the kind not taken from `llm.request.type`. The other two
+change nothing a reader sees. Ignoring `llm.usage.total_tokens` loses nothing,
+because the total is worked out from the two halves anyway. Numbering every
+message one higher leaves a gap at 0 that the renderer drops. The older samples
+render exactly as before.
 

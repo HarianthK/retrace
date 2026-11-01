@@ -87,19 +87,21 @@ function fromOtlp(doc) {
 }
 
 // OpenTelemetry's own GenAI names, as OpenLLMetry writes them, copied onto the OpenInference names the
-// rest of the page reads. A span already carrying OpenInference names is left as it is.
+// rest of the page reads. A span already carrying OpenInference names is left as it is. DOCS.md has both forms.
+const FLAT_KIND = { chat: "LLM", completion: "LLM", embedding: "EMBEDDING" }
 const GENAI_KIND = { chat: "LLM", text_completion: "LLM", generate_content: "LLM", embeddings: "EMBEDDING", execute_tool: "TOOL", invoke_agent: "AGENT", create_agent: "AGENT" }
 function fromGenAI(a) {
   if (a["openinference.span.kind"] || !Object.keys(a).some((k) => k.startsWith("gen_ai."))) return
   const set = (k, v) => { if (v != null && a[k] == null) a[k] = v }
   const text = (v) => (typeof v === "string" ? v : JSON.stringify(v))
-  set("openinference.span.kind", GENAI_KIND[a["gen_ai.operation.name"]])
+  set("openinference.span.kind", GENAI_KIND[a["gen_ai.operation.name"]] ?? FLAT_KIND[a["llm.request.type"]])
   set("llm.model_name", a["gen_ai.response.model"] ?? a["gen_ai.request.model"])
   set("llm.provider", a["gen_ai.provider.name"] ?? a["gen_ai.system"])
-  const input = a["gen_ai.usage.input_tokens"], output = a["gen_ai.usage.output_tokens"]
+  // Releases before the structured messages used the older token names.
+  const input = a["gen_ai.usage.input_tokens"] ?? a["gen_ai.usage.prompt_tokens"], output = a["gen_ai.usage.output_tokens"] ?? a["gen_ai.usage.completion_tokens"]
   set("llm.token_count.prompt", input)
   set("llm.token_count.completion", output)
-  set("llm.token_count.total", a["gen_ai.usage.total_tokens"] ?? (input != null && output != null ? Number(input) + Number(output) : null))
+  set("llm.token_count.total", a["gen_ai.usage.total_tokens"] ?? a["llm.usage.total_tokens"] ?? (input != null && output != null ? Number(input) + Number(output) : null))
   set("llm.token_count.completion_details.reasoning", a["gen_ai.usage.reasoning_tokens"])
   set("llm.token_count.prompt_details.cache_read", a["gen_ai.usage.cache_read.input_tokens"])
   set("tool.name", a["gen_ai.tool.name"])
@@ -125,6 +127,21 @@ function fromGenAI(a) {
     })
   }
   try { JSON.parse(a["gen_ai.tool.definitions"]).forEach((d, i) => set(`llm.tools.${i}.tool.json_schema`, text(d))) } catch {}
+  // The older flat form: gen_ai.prompt.0.role, gen_ai.completion.0.tool_calls.0.name and so on, one key per field.
+  for (const [from, to] of [["gen_ai.prompt", "llm.input_messages"], ["gen_ai.completion", "llm.output_messages"]]) {
+    for (const [k, v] of Object.entries(a)) {
+      const m = k.slice(from.length).match(/^\.(\d+)\.(role|content|tool_call_id|tool_calls\.(\d+)\.(name|arguments|id))$/)
+      if (!k.startsWith(from) || !m) continue
+      const at = `${to}.${m[1]}.message`
+      if (m[3] == null) set(`${at}.${m[2]}`, v)
+      else set(`${at}.tool_calls.${m[3]}.tool_call.${m[4] === "id" ? "id" : `function.${m[4]}`}`, v)
+    }
+  }
+  for (let i = 0; a[`llm.request.functions.${i}.name`] != null; i++) {
+    let parameters = a[`llm.request.functions.${i}.parameters`]
+    try { parameters = JSON.parse(parameters) } catch {}
+    set(`llm.tools.${i}.tool.json_schema`, text({ name: a[`llm.request.functions.${i}.name`], description: a[`llm.request.functions.${i}.description`], parameters }))
+  }
 }
 
 function normalise(doc) {
@@ -284,7 +301,7 @@ function select(s) {
   const exceptions = s.events.filter((e) => e.name === "exception")
   for (const e of exceptions) { const ea = flatten(e.attributes); parts.push(el("h3", { text: "Exception" }), el("pre", { text: `${ea["exception.type"] ?? ""}: ${ea["exception.message"] ?? ""}\n${ea["exception.stacktrace"] ?? ""}`.trim() })) }
 
-  const shown = /^(openinference\.span\.kind|llm\.(model_name|provider|token_count\..*|input_messages\..*|output_messages\..*|tools\..*|invocation_parameters)|input\.(value|mime_type)|output\.(value|mime_type)|tool\.name|retrieval\.documents\..*|gen_ai\.((input|output)\.messages|usage\..*|(request|response)\.model|provider\.name|system|operation\.name|tool\.(name|definitions)))$/
+  const shown = /^(openinference\.span\.kind|llm\.(model_name|provider|token_count\..*|input_messages\..*|output_messages\..*|tools\..*|invocation_parameters)|input\.(value|mime_type)|output\.(value|mime_type)|tool\.name|retrieval\.documents\..*|gen_ai\.((input|output)\.messages|(prompt|completion)\.\d+\.(role|content|tool_call_id|tool_calls\.\d+\.(name|arguments|id))|usage\..*|(request|response)\.model|provider\.name|system|operation\.name|tool\.(name|definitions))|llm\.(usage\.total_tokens|request\.(type|functions\..*)))$/
   const rest = Object.entries(a).filter(([k]) => !shown.test(k))
   if (rest.length) parts.push(el("h3", { text: "Other attributes" }), el("table", {}, ...rest.map(([k, v]) => el("tr", {}, el("td", { text: k }), el("td", { text: typeof v === "string" ? v : JSON.stringify(v) })))))
   detail.replaceChildren(...parts)

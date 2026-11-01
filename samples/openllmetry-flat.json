@@ -1,0 +1,167 @@
+[
+  {
+    "name": "openai.chat",
+    "context": {
+      "trace_id": "0x6aa17a4c5bd015ff0276c1f429be08e7",
+      "span_id": "0x6541faa827008219",
+      "trace_state": "[]"
+    },
+    "kind": "SpanKind.CLIENT",
+    "parent_id": "0xa5b0cafe99323155",
+    "start_time": "2026-11-01T05:44:56.415123Z",
+    "end_time": "2026-11-01T05:44:56.473053Z",
+    "status": {
+      "status_code": "UNSET"
+    },
+    "attributes": {
+      "llm.request.type": "chat",
+      "gen_ai.system": "OpenAI",
+      "gen_ai.request.model": "gpt-4o-mini",
+      "llm.headers": "None",
+      "llm.is_streaming": false,
+      "gen_ai.openai.api_base": "https://api.openai.test/v1/",
+      "gen_ai.prompt.0.role": "system",
+      "gen_ai.prompt.0.content": "You are a support agent for an online shop.",
+      "gen_ai.prompt.1.role": "user",
+      "gen_ai.prompt.1.content": "Where is my order A-1042?",
+      "llm.request.functions.0.name": "get_order",
+      "llm.request.functions.0.description": "Look up an order by its id",
+      "llm.request.functions.0.parameters": "{\"type\": \"object\", \"properties\": {\"order_id\": {\"type\": \"string\"}}, \"required\": [\"order_id\"]}",
+      "gen_ai.response.model": "gpt-4o-mini-2024-07-18",
+      "gen_ai.response.id": "chatcmpl-1",
+      "llm.usage.total_tokens": 105,
+      "gen_ai.usage.completion_tokens": 17,
+      "gen_ai.usage.prompt_tokens": 88,
+      "gen_ai.completion.0.finish_reason": "tool_calls",
+      "gen_ai.completion.0.role": "assistant",
+      "gen_ai.completion.0.tool_calls.0.id": "call_7",
+      "gen_ai.completion.0.tool_calls.0.name": "get_order",
+      "gen_ai.completion.0.tool_calls.0.arguments": "{\"order_id\": \"A-1042\"}"
+    },
+    "events": [],
+    "links": [],
+    "resource": {
+      "attributes": {
+        "telemetry.sdk.language": "python",
+        "telemetry.sdk.name": "opentelemetry",
+        "telemetry.sdk.version": "1.45.2",
+        "service.instance.id": "1a1b00a2-d240-4994-bf74-6bc5f41431e9",
+        "service.name": "unknown_service:python.exe"
+      },
+      "schema_url": ""
+    }
+  },
+  {
+    "name": "get_order",
+    "context": {
+      "trace_id": "0x6aa17a4c5bd015ff0276c1f429be08e7",
+      "span_id": "0x2bd348dd170925c1",
+      "trace_state": "[]"
+    },
+    "kind": "SpanKind.INTERNAL",
+    "parent_id": "0xa5b0cafe99323155",
+    "start_time": "2026-11-01T05:44:56.473053Z",
+    "end_time": "2026-11-01T05:44:56.473053Z",
+    "status": {
+      "status_code": "UNSET"
+    },
+    "attributes": {},
+    "events": [],
+    "links": [],
+    "resource": {
+      "attributes": {
+        "telemetry.sdk.language": "python",
+        "telemetry.sdk.name": "opentelemetry",
+        "telemetry.sdk.version": "1.45.2",
+        "service.instance.id": "1a1b00a2-d240-4994-bf74-6bc5f41431e9",
+        "service.name": "unknown_service:python.exe"
+      },
+      "schema_url": ""
+    }
+  },
+  {
+    "name": "openai.chat",
+    "context": {
+      "trace_id": "0x6aa17a4c5bd015ff0276c1f429be08e7",
+      "span_id": "0x233306fa560cfc09",
+      "trace_state": "[]"
+    },
+    "kind": "SpanKind.CLIENT",
+    "parent_id": "0xa5b0cafe99323155",
+    "start_time": "2026-11-01T05:44:56.473053Z",
+    "end_time": "2026-11-01T05:44:56.477177Z",
+    "status": {
+      "status_code": "UNSET"
+    },
+    "attributes": {
+      "llm.request.type": "chat",
+      "gen_ai.system": "OpenAI",
+      "gen_ai.request.model": "gpt-4o-mini",
+      "llm.headers": "None",
+      "llm.is_streaming": false,
+      "gen_ai.openai.api_base": "https://api.openai.test/v1/",
+      "gen_ai.prompt.0.role": "system",
+      "gen_ai.prompt.0.content": "You are a support agent for an online shop.",
+      "gen_ai.prompt.1.role": "user",
+      "gen_ai.prompt.1.content": "Where is my order A-1042?",
+      "gen_ai.prompt.2.role": "assistant",
+      "gen_ai.prompt.2.tool_calls.0.id": "call_7",
+      "gen_ai.prompt.2.tool_calls.0.name": "get_order",
+      "gen_ai.prompt.2.tool_calls.0.arguments": "{\"order_id\": \"A-1042\"}",
+      "gen_ai.prompt.3.role": "tool",
+      "gen_ai.prompt.3.content": "{\"order_id\": \"A-1042\", \"status\": \"shipped\", \"shipped\": \"2026-10-28\", \"eta\": \"2026-11-02\"}",
+      "gen_ai.prompt.3.tool_call_id": "call_7",
+      "llm.request.functions.0.name": "get_order",
+      "llm.request.functions.0.description": "Look up an order by its id",
+      "llm.request.functions.0.parameters": "{\"type\": \"object\", \"properties\": {\"order_id\": {\"type\": \"string\"}}, \"required\": [\"order_id\"]}",
+      "gen_ai.response.model": "gpt-4o-mini-2024-07-18",
+      "gen_ai.response.id": "chatcmpl-2",
+      "llm.usage.total_tokens": 147,
+      "gen_ai.usage.completion_tokens": 16,
+      "gen_ai.usage.prompt_tokens": 131,
+      "gen_ai.completion.0.finish_reason": "stop",
+      "gen_ai.completion.0.role": "assistant",
+      "gen_ai.completion.0.content": "Order A-1042 shipped on 28 October and should arrive on Monday."
+    },
+    "events": [],
+    "links": [],
+    "resource": {
+      "attributes": {
+        "telemetry.sdk.language": "python",
+        "telemetry.sdk.name": "opentelemetry",
+        "telemetry.sdk.version": "1.45.2",
+        "service.instance.id": "1a1b00a2-d240-4994-bf74-6bc5f41431e9",
+        "service.name": "unknown_service:python.exe"
+      },
+      "schema_url": ""
+    }
+  },
+  {
+    "name": "answer_customer",
+    "context": {
+      "trace_id": "0x6aa17a4c5bd015ff0276c1f429be08e7",
+      "span_id": "0xa5b0cafe99323155",
+      "trace_state": "[]"
+    },
+    "kind": "SpanKind.INTERNAL",
+    "parent_id": null,
+    "start_time": "2026-11-01T05:44:56.415123Z",
+    "end_time": "2026-11-01T05:44:56.477177Z",
+    "status": {
+      "status_code": "UNSET"
+    },
+    "attributes": {},
+    "events": [],
+    "links": [],
+    "resource": {
+      "attributes": {
+        "telemetry.sdk.language": "python",
+        "telemetry.sdk.name": "opentelemetry",
+        "telemetry.sdk.version": "1.45.2",
+        "service.instance.id": "1a1b00a2-d240-4994-bf74-6bc5f41431e9",
+        "service.name": "unknown_service:python.exe"
+      },
+      "schema_url": ""
+    }
+  }
+]

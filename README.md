@@ -44,7 +44,11 @@ Spans written with OpenTelemetry's own GenAI names instead, `gen_ai.*`, as
 OpenLLMetry writes them, are read too: the operation, model and provider, the
 token counts with reasoning and cache, the input and output messages with
 their text, reasoning, tool calls and tool results, and the tools offered.
-`samples/openllmetry-groq.json` is such a trace.
+`samples/openllmetry-groq.json` is such a trace. So is the older flat form
+that OpenLLMetry wrote before the structured messages, one key per field, like
+`gen_ai.prompt.2.tool_calls.0.name`, with the older token names and the tools
+under `llm.request.functions`; `samples/openllmetry-flat.json` came from its
+OpenAI instrumentor, release 0.40.14.
 
 Several files can be dropped at once, a folder of exports for instance; they
 become one list of traces, and a span that appears in two files is kept once,
@@ -75,7 +79,9 @@ the page in headless Chrome, drops the files in, and prints the traces, the tree
 the detail pane and the retriever's documents as text. With `--title "209 tokens"`
 it also fails unless the first trace's heading contains that text, which is how
 `scripts/fixtures/wrapped-llm.json` checks that a wrapped call is counted once
-(150 tokens, not 250). `--traces` does the same for the row of trace buttons.
+(150 tokens, not 250). `--traces` does the same for the row of trace buttons,
+and `--messages`, `--facts` and `--headings` for the second model call's
+conversation, its facts line and its section headings.
 `node scripts/deploy.mjs` deploys to Vercel and checks the live files match.
 
 ## Notes
