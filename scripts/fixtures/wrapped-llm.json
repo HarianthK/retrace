@@ -43,7 +43,8 @@
    "openinference.span.kind": "LLM",
    "llm.token_count.prompt": 80,
    "llm.token_count.completion": 20,
-   "llm.token_count.total": 100
+   "llm.token_count.total": 100,
+   "llm.cost.total": 0.0015
   },
   "events": [],
   "links": [],
@@ -72,7 +73,9 @@
    "openinference.span.kind": "LLM",
    "llm.token_count.prompt": 80,
    "llm.token_count.completion": 20,
-   "llm.token_count.total": 100
+   "llm.token_count.total": 100,
+   "llm.cost.prompt": 0.0012,
+   "llm.cost.completion": 0.0003
   },
   "events": [],
   "links": [],
@@ -100,7 +103,8 @@
   "attributes": {
    "openinference.span.kind": "LLM",
    "llm.token_count.prompt": 40,
-   "llm.token_count.completion": 10
+   "llm.token_count.completion": 10,
+   "llm.cost.total": 0.0006
   },
   "events": [],
   "links": [],

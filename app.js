@@ -104,6 +104,7 @@ function fromGenAI(a) {
   set("llm.token_count.total", a["gen_ai.usage.total_tokens"] ?? a["llm.usage.total_tokens"] ?? (input != null && output != null ? Number(input) + Number(output) : null))
   set("llm.token_count.completion_details.reasoning", a["gen_ai.usage.reasoning_tokens"])
   set("llm.token_count.prompt_details.cache_read", a["gen_ai.usage.cache_read.input_tokens"])
+  set("llm.cost.total", a["gen_ai.usage.cost"])  // OpenLIT's estimate, in dollars
   set("tool.name", a["gen_ai.tool.name"])
   // Messages are a JSON list, each message a role and typed parts.
   for (const [from, to] of [["gen_ai.input.messages", "llm.input_messages"], ["gen_ai.output.messages", "llm.output_messages"]]) {
@@ -198,13 +199,23 @@ function tokensOf(s) {
   return prompt != null && completion != null ? Number(prompt) + Number(completion) : null
 }
 
+// The same for cost in dollars, OpenInference's llm.cost names.
+function costOf(s) {
+  const a = s.attrs, total = a["llm.cost.total"], prompt = a["llm.cost.prompt"], completion = a["llm.cost.completion"]
+  if (total != null) return Number(total)
+  return prompt != null && completion != null ? Number(prompt) + Number(completion) : null
+}
+const dollars = (n) => `$${n >= 1 ? n.toFixed(2) : Number(n.toPrecision(2))}`
+
 // One model call can show up twice, a framework's span around the client's own; counting
 // only spans with no counted ancestor keeps it once. Bounded, in case parents form a loop.
-function traceTokens(list) {
+function traceSum(list, of) {
   const byId = new Map(list.map((s) => [s.id, s]))
-  const counted = (s) => { let p = byId.get(s.parentId); for (let n = 0; p && n < list.length; n++, p = byId.get(p.parentId)) if (tokensOf(p) != null) return false; return true }
-  return list.filter((s) => tokensOf(s) != null && counted(s)).reduce((sum, s) => sum + tokensOf(s), 0)
+  const counted = (s) => { let p = byId.get(s.parentId); for (let n = 0; p && n < list.length; n++, p = byId.get(p.parentId)) if (of(p) != null) return false; return true }
+  return list.filter((s) => of(s) != null && counted(s)).reduce((sum, s) => sum + of(s), 0)
 }
+// "1,234 tokens, $0.012", or only the part a trace has.
+const usage = (list) => { const t = traceSum(list, tokensOf), c = traceSum(list, costOf); return `${t ? `, ${t.toLocaleString("en")} tokens` : ""}${c ? `, ${dollars(c)}` : ""}` }
 
 function showTrace(id, list) {
   const t0 = Math.min(...list.map((s) => s.start)), t1 = Math.max(...list.map((s) => s.end))
@@ -216,8 +227,7 @@ function showTrace(id, list) {
   const walk = (parent, depth) => { for (const s of byParent.get(parent) || []) { rows.push([s, depth]); walk(s.id, depth + 1) } }
   walk(null, 0)
   const errors = list.filter((s) => s.status === "ERROR").length
-  const tokens = traceTokens(list)
-  treeTitle.textContent = `${list.length} spans, ${ms(total)}${tokens ? `, ${tokens.toLocaleString("en")} tokens` : ""}${errors ? `, ${errors} with errors` : ""}`
+  treeTitle.textContent = `${list.length} spans, ${ms(total)}${usage(list)}${errors ? `, ${errors} with errors` : ""}`
   tree.replaceChildren(...rows.map(([s, depth]) => {
     const kind = kindOf(s)
     const row = el("div", { class: "span", style: `padding-left:${6 + depth * 16}px`, onclick: () => select(s) },
@@ -273,6 +283,7 @@ function select(s) {
   const facts = [[kindOf(s), "kind"], [ms(s.end - s.start), "took"], [s.status, "status"]]
   if (a["llm.model_name"]) facts.push([a["llm.model_name"], a["llm.provider"] ? `model, ${a["llm.provider"]}` : "model"])
   if (a["llm.token_count.total"] != null) facts.push([`${a["llm.token_count.prompt"] ?? "?"} + ${a["llm.token_count.completion"] ?? "?"} = ${a["llm.token_count.total"]}`, "tokens, in + out"])
+  if (costOf(s) != null) facts.push([dollars(costOf(s)), a["llm.cost.prompt"] != null && a["llm.cost.completion"] != null ? `cost, ${dollars(Number(a["llm.cost.prompt"]))} in + ${dollars(Number(a["llm.cost.completion"]))} out` : "cost"])
   if (a["llm.token_count.prompt_details.cache_read"] != null) facts.push([a["llm.token_count.prompt_details.cache_read"], "from cache"])
   if (a["llm.token_count.completion_details.reasoning"] != null) facts.push([a["llm.token_count.completion_details.reasoning"], "reasoning tokens"])
   if (a["tool.name"]) facts.push([a["tool.name"], "tool"])
@@ -301,7 +312,7 @@ function select(s) {
   const exceptions = s.events.filter((e) => e.name === "exception")
   for (const e of exceptions) { const ea = flatten(e.attributes); parts.push(el("h3", { text: "Exception" }), el("pre", { text: `${ea["exception.type"] ?? ""}: ${ea["exception.message"] ?? ""}\n${ea["exception.stacktrace"] ?? ""}`.trim() })) }
 
-  const shown = /^(openinference\.span\.kind|llm\.(model_name|provider|token_count\..*|input_messages\..*|output_messages\..*|tools\..*|invocation_parameters)|input\.(value|mime_type)|output\.(value|mime_type)|tool\.name|retrieval\.documents\..*|gen_ai\.((input|output)\.messages|(prompt|completion)\.\d+\.(role|content|tool_call_id|tool_calls\.\d+\.(name|arguments|id))|usage\..*|(request|response)\.model|provider\.name|system|operation\.name|tool\.(name|definitions))|llm\.(usage\.total_tokens|request\.(type|functions\..*)))$/
+  const shown = /^(openinference\.span\.kind|llm\.(model_name|provider|token_count\..*|cost\..*|input_messages\..*|output_messages\..*|tools\..*|invocation_parameters)|input\.(value|mime_type)|output\.(value|mime_type)|tool\.name|retrieval\.documents\..*|gen_ai\.((input|output)\.messages|(prompt|completion)\.\d+\.(role|content|tool_call_id|tool_calls\.\d+\.(name|arguments|id))|usage\..*|(request|response)\.model|provider\.name|system|operation\.name|tool\.(name|definitions))|llm\.(usage\.total_tokens|request\.(type|functions\..*)))$/
   const rest = Object.entries(a).filter(([k]) => !shown.test(k))
   if (rest.length) parts.push(el("h3", { text: "Other attributes" }), el("table", {}, ...rest.map(([k, v]) => el("tr", {}, el("td", { text: k }), el("td", { text: typeof v === "string" ? v : JSON.stringify(v) })))))
   detail.replaceChildren(...parts)
@@ -329,7 +340,7 @@ function load(texts, label) {
   if (!spans.length) { status.textContent = problems[0] || "No spans found. Retrace reads OpenTelemetry spans as JSON."; return }
   status.textContent = problems.join(" ")
   const traces = traceIds()
-  tracesBar.replaceChildren(...(traces.length > 1 ? traces.map(([id, list], i) => el("button", { type: "button", onclick: (e) => { for (const b of tracesBar.children) b.classList.remove("on"); e.currentTarget.classList.add("on"); showTrace(id, list) }, text: `Trace ${i + 1}: ${list.find((s) => !list.some((x) => x.id === s.parentId))?.name ?? id.slice(0, 8)} (${list.length} spans${traceTokens(list) ? `, ${traceTokens(list).toLocaleString("en")} tokens` : ""})` })) : []))
+  tracesBar.replaceChildren(...(traces.length > 1 ? traces.map(([id, list], i) => el("button", { type: "button", onclick: (e) => { for (const b of tracesBar.children) b.classList.remove("on"); e.currentTarget.classList.add("on"); showTrace(id, list) }, text: `Trace ${i + 1}: ${list.find((s) => !list.some((x) => x.id === s.parentId))?.name ?? id.slice(0, 8)} (${list.length} spans${usage(list)})` })) : []))
   tracesBar.firstChild?.classList.add("on")
   document.title = `Retrace: ${label}`
   showTrace(...traces[0])

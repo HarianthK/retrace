@@ -60,7 +60,10 @@ Above the tree, each trace's span count and duration come with the tokens it
 used across all its model calls, so the expensive run in a folder of exports
 stands out, and each trace's button in the list above carries its own total, so
 you can see which run to open before opening it. A model call recorded twice, by a framework's span wrapped around
-the client library's own, is counted once.
+the client library's own, is counted once. When the spans carry a cost, as
+OpenInference's `llm.cost.*` or OpenLIT's `gen_ai.usage.cost`, it is added up
+the same way and shown next to the tokens, and each model call shows its own.
+`samples/openlit-openai.json` came from OpenLIT 1.45.0 driving two OpenAI calls.
 
 The find box above the tree searches span names and every attribute value,
 messages included, dims the spans that do not match, and Enter jumps to the

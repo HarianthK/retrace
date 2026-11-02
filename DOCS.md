@@ -182,3 +182,28 @@ because the total is worked out from the two halves anyway. Numbering every
 message one higher leaves a gap at 0 that the renderer drops. The older samples
 render exactly as before.
 
+## What a trace cost
+
+OpenLIT 1.45.0, installed and run against a mocked OpenAI API for two chat
+calls, writes the structured `gen_ai.input.messages` form, which was already
+read, and one more number: `gen_ai.usage.cost`, its own estimate in dollars
+from a price table it ships. Retrace hid it. Every `gen_ai.usage.*` key counted
+as already shown because of the token counts, so the cost was not in the facts
+and not under "Other attributes" either. OpenInference has names for the same
+thing, `llm.cost.prompt`, `llm.cost.completion` and `llm.cost.total`.
+
+Cost is now read like tokens: the total if there is one, else the two halves
+added, OpenLIT's number copied onto `llm.cost.total`. The trace's heading and
+its button add it up with the same rule as the tokens, so a wrapped call is
+paid for once, and the shared counting became `traceSum(list, of)`. A dollar
+amount under one keeps two significant figures, since a call to a small model
+costs $0.00002 and two decimal places would show every one as $0.00.
+
+`scripts/fixtures/wrapped-llm.json` gained costs: the wrapped call at $0.0015
+on both its spans, the inner one split into $0.0012 in and $0.0003 out, and
+the other call at $0.0006, so the trace is $0.0021 and $0.0036 means it was
+counted twice. Five breakages each fail a check: OpenLIT's name not read, the
+wrapped call counted twice, the two halves not added, two decimal places, and
+the buttons left showing tokens only. Not checked: `llm.cost.*` added to the
+keys counted as shown, which only keeps them out of "Other attributes", and
+the check can say a heading is there but not that one is missing.
