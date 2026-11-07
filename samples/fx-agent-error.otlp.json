@@ -1,0 +1,218 @@
+{
+  "resourceSpans": [
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "telemetry.sdk.language",
+            "value": {
+              "stringValue": "python"
+            }
+          },
+          {
+            "key": "telemetry.sdk.name",
+            "value": {
+              "stringValue": "opentelemetry"
+            }
+          },
+          {
+            "key": "telemetry.sdk.version",
+            "value": {
+              "stringValue": "1.45.2"
+            }
+          },
+          {
+            "key": "service.instance.id",
+            "value": {
+              "stringValue": "8f9fdd1b-d9b2-465b-88e9-74bdd1e1dc94"
+            }
+          },
+          {
+            "key": "service.name",
+            "value": {
+              "stringValue": "fx-agent"
+            }
+          }
+        ]
+      },
+      "scopeSpans": [
+        {
+          "scope": {
+            "name": "fx-agent"
+          },
+          "spans": [
+            {
+              "traceId": "wA7QFwCU6iiLpTsA1/n7aQ==",
+              "spanId": "b7rClzZfZTQ=",
+              "parentSpanId": "rJDUDdCCHOs=",
+              "name": "ChatCompletion",
+              "kind": "SPAN_KIND_INTERNAL",
+              "startTimeUnixNano": "1794072759647968900",
+              "endTimeUnixNano": "1794072760068715100",
+              "attributes": [
+                {
+                  "key": "openinference.span.kind",
+                  "value": {
+                    "stringValue": "LLM"
+                  }
+                },
+                {
+                  "key": "llm.model_name",
+                  "value": {
+                    "stringValue": "gpt-4o-mini"
+                  }
+                },
+                {
+                  "key": "llm.provider",
+                  "value": {
+                    "stringValue": "openai"
+                  }
+                },
+                {
+                  "key": "llm.input_messages.0.message.role",
+                  "value": {
+                    "stringValue": "user"
+                  }
+                },
+                {
+                  "key": "llm.input_messages.0.message.content",
+                  "value": {
+                    "stringValue": "How much is 40 dollars in yen?"
+                  }
+                },
+                {
+                  "key": "llm.output_messages.0.message.role",
+                  "value": {
+                    "stringValue": "assistant"
+                  }
+                },
+                {
+                  "key": "llm.output_messages.0.message.tool_calls.0.tool_call.function.name",
+                  "value": {
+                    "stringValue": "convert"
+                  }
+                },
+                {
+                  "key": "llm.output_messages.0.message.tool_calls.0.tool_call.function.arguments",
+                  "value": {
+                    "stringValue": "{\"amount\": 40, \"currency\": \"JPY\"}"
+                  }
+                },
+                {
+                  "key": "llm.token_count.prompt",
+                  "value": {
+                    "intValue": "58"
+                  }
+                },
+                {
+                  "key": "llm.token_count.completion",
+                  "value": {
+                    "intValue": "17"
+                  }
+                },
+                {
+                  "key": "llm.token_count.total",
+                  "value": {
+                    "intValue": "75"
+                  }
+                }
+              ],
+              "status": {},
+              "flags": 256
+            },
+            {
+              "traceId": "wA7QFwCU6iiLpTsA1/n7aQ==",
+              "spanId": "QgDmw/gP/pQ=",
+              "parentSpanId": "rJDUDdCCHOs=",
+              "name": "convert",
+              "kind": "SPAN_KIND_INTERNAL",
+              "startTimeUnixNano": "1794072760068715100",
+              "endTimeUnixNano": "1794072760100512800",
+              "attributes": [
+                {
+                  "key": "openinference.span.kind",
+                  "value": {
+                    "stringValue": "TOOL"
+                  }
+                },
+                {
+                  "key": "tool.name",
+                  "value": {
+                    "stringValue": "convert"
+                  }
+                },
+                {
+                  "key": "input.value",
+                  "value": {
+                    "stringValue": "{\"amount\": 40, \"currency\": \"JPY\"}"
+                  }
+                }
+              ],
+              "events": [
+                {
+                  "timeUnixNano": "1794072760100512800",
+                  "name": "exception",
+                  "attributes": [
+                    {
+                      "key": "exception.type",
+                      "value": {
+                        "stringValue": "KeyError"
+                      }
+                    },
+                    {
+                      "key": "exception.message",
+                      "value": {
+                        "stringValue": "'JPY'"
+                      }
+                    },
+                    {
+                      "key": "exception.stacktrace",
+                      "value": {
+                        "stringValue": "Traceback (most recent call last):\n  File \"C:\\w\\fx\\otel\\opentelemetry\\trace\\__init__.py\", line 602, in use_span\n    yield span\n  File \"C:\\w\\fx\\otel\\opentelemetry\\sdk\\trace\\__init__.py\", line 1136, in start_as_current_span\n    yield span\n  File \"C:\\w\\fx\\fx_agent.py\", line 33, in <module>\n    convert(40, \"JPY\")\n  File \"C:\\w\\fx\\fx_agent.py\", line 18, in convert\n    return amount * rates[currency]\nKeyError: 'JPY'\n"
+                      }
+                    },
+                    {
+                      "key": "exception.escaped",
+                      "value": {
+                        "stringValue": "False"
+                      }
+                    }
+                  ]
+                }
+              ],
+              "status": {
+                "message": "KeyError: 'JPY'",
+                "code": "STATUS_CODE_ERROR"
+              },
+              "flags": 256
+            },
+            {
+              "traceId": "wA7QFwCU6iiLpTsA1/n7aQ==",
+              "spanId": "rJDUDdCCHOs=",
+              "name": "agent",
+              "kind": "SPAN_KIND_INTERNAL",
+              "startTimeUnixNano": "1794072759647968900",
+              "endTimeUnixNano": "1794072760100512800",
+              "attributes": [
+                {
+                  "key": "openinference.span.kind",
+                  "value": {
+                    "stringValue": "AGENT"
+                  }
+                },
+                {
+                  "key": "input.value",
+                  "value": {
+                    "stringValue": "How much is 40 dollars in yen?"
+                  }
+                }
+              ],
+              "status": {},
+              "flags": 256
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -50,6 +50,11 @@ that OpenLLMetry wrote before the structured messages, one key per field, like
 under `llm.request.functions`; `samples/openllmetry-flat.json` came from its
 OpenAI instrumentor, release 0.40.14.
 
+A span that failed shows its exception, the type, message and stack trace
+from the span's `exception` event, in all three shapes;
+`samples/fx-agent-error.otlp.json` is a tool call that raised, written by the
+OpenTelemetry SDK's own OTLP encoder.
+
 Several files can be dropped at once, a folder of exports for instance; they
 become one list of traces, and a span that appears in two files is kept once,
 so overlapping exports do not double up. Retriever spans list the documents
@@ -84,7 +89,8 @@ it also fails unless the first trace's heading contains that text, which is how
 `scripts/fixtures/wrapped-llm.json` checks that a wrapped call is counted once
 (150 tokens, not 250). `--traces` does the same for the row of trace buttons,
 and `--messages`, `--facts` and `--headings` for the second model call's
-conversation, its facts line and its section headings.
+conversation, its facts line and its section headings. `--exception "KeyError"`
+fails unless the first failed span shows an exception containing that text.
 `node scripts/deploy.mjs` deploys to Vercel and checks the live files match.
 
 ## Notes

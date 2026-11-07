@@ -76,12 +76,15 @@ function fromSdk(s) {
   }
 }
 
+const otlpAttrs = (list) => Object.fromEntries((list || []).map((a) => [a.key, otlpValue(a.value)]))
 function fromOtlp(doc) {
   const out = []
   for (const rs of doc.resourceSpans || []) for (const ss of rs.scopeSpans || rs.instrumentationLibrarySpans || []) for (const s of ss.spans || []) {
-    const attrs = Object.fromEntries((s.attributes || []).map((a) => [a.key, otlpValue(a.value)]))
+    const attrs = otlpAttrs(s.attributes)
+    // Events carry key/value lists too, so an exception's type and message are read the same way.
+    const events = (s.events || []).map((e) => ({ ...e, attributes: otlpAttrs(e.attributes) }))
     const code = { 0: "UNSET", 1: "OK", 2: "ERROR", STATUS_CODE_UNSET: "UNSET", STATUS_CODE_OK: "OK", STATUS_CODE_ERROR: "ERROR" }[s.status?.code ?? 0] ?? "UNSET"
-    out.push({ id: s.spanId, traceId: s.traceId, parentId: s.parentSpanId || null, name: s.name, start: nanos(s.startTimeUnixNano), end: nanos(s.endTimeUnixNano), status: code, message: s.status?.message ?? "", attrs, events: s.events || [] })
+    out.push({ id: s.spanId, traceId: s.traceId, parentId: s.parentSpanId || null, name: s.name, start: nanos(s.startTimeUnixNano), end: nanos(s.endTimeUnixNano), status: code, message: s.status?.message ?? "", attrs, events })
   }
   return out
 }

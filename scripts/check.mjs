@@ -1,5 +1,5 @@
 // Serves the folder, opens the page in headless Chrome, loads a sample file, prints what was rendered.
-// Run: node scripts/check.mjs [samples/weather-agent.json ...] [--title "209 tokens"] [--traces "167 tokens"] [--messages "get_weather"] [--facts "131 + 16"] [--headings "Tools offered (1)"]
+// Run: node scripts/check.mjs [samples/weather-agent.json ...] [--title "209 tokens"] [--traces "167 tokens"] [--messages "get_weather"] [--facts "131 + 16"] [--headings "Tools offered (1)"] [--exception "KeyError"]
 import { spawn } from "node:child_process"
 import http from "node:http"
 import { existsSync, readFileSync } from "node:fs"
@@ -16,6 +16,8 @@ const wantMessages = args.includes("--messages") ? args.splice(args.indexOf("--m
 // --facts and --headings do the same for that span's facts line and its section headings.
 const wantFacts = args.includes("--facts") ? args.splice(args.indexOf("--facts"), 2)[1] : null
 const wantHeadings = args.includes("--headings") ? args.splice(args.indexOf("--headings"), 2)[1] : null
+// --exception: the first span marked as an error must show an Exception section containing the text.
+const wantException = args.includes("--exception") ? args.splice(args.indexOf("--exception"), 2)[1] : null
 // Each file is read here, from any path, so a file outside this folder works and a missing
 // one stops the check with its name instead of rendering an error page as if it were the file.
 const samples = (args.length ? args : ["samples/weather-agent.json"]).map((p) => {
@@ -60,6 +62,15 @@ if (wantTitle != null && !out.title.includes(wantTitle)) {
 if (wantTraces != null && !out.traces.join(" | ").includes(wantTraces)) {
   console.error(`check: the traces read "${out.traces.join(" | ")}", which does not contain "${wantTraces}"`)
   chrome.kill(); server.close(); process.exit(1)
+}
+if (wantException != null) {
+  const r5 = await send("Runtime.evaluate", { expression: `[...document.querySelectorAll("#tree .span")].find(r => r.querySelector(".name b"))?.click(); JSON.stringify([...document.querySelectorAll("#detail h3")].filter(h => h.textContent === "Exception").map(h => h.nextElementSibling.textContent))`, returnByValue: true })
+  const shown = JSON.parse(r5.result.value)
+  console.log(JSON.stringify({ exception: shown.map((t) => t.split(String.fromCharCode(10))[0]) }))
+  if (!shown.some((t) => t.includes(wantException))) {
+    console.error(`check: the error span's exception reads ${JSON.stringify(shown.map((t) => t.slice(0, 80)))}, which does not contain "${wantException}"`)
+    chrome.kill(); server.close(); process.exit(1)
+  }
 }
 // Click the second LLM span and read its messages.
 await send("Runtime.evaluate", { expression: `[...document.querySelectorAll("#tree .span")].filter(r => r.querySelector(".kind").textContent === "LLM")[1].click()` })

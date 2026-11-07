@@ -207,3 +207,27 @@ wrapped call counted twice, the two halves not added, two decimal places, and
 the buttons left showing tokens only. Not checked: `llm.cost.*` added to the
 keys counted as shown, which only keeps them out of "Other attributes", and
 the check can say a heading is there but not that one is missing.
+
+## Exceptions in OTLP files
+
+OpenTelemetry records a raised exception as an event on the span, named
+`exception`, with `exception.type`, `exception.message` and
+`exception.stacktrace`. The page has shown it since the start, but only ever
+saw it from the SDK's `to_json()`, where an event's attributes are a plain
+object. In OTLP they are a list of `{key, value}` pairs, the same as the
+span's own attributes, and the reader converted the span's but passed the
+events through as they were. So an OTLP file showed an Exception heading over
+a bare `:`. None of the samples had an event, which is why it went unseen.
+
+`samples/fx-agent-error.otlp.json` is the trace that found it: an agent, a model
+call asking for a `convert` tool, and the tool raising `KeyError: 'JPY'`. It
+was made by the OpenTelemetry Python SDK 1.45.2, with the span closed by the
+SDK's own exception handling, encoded by `opentelemetry-exporter-otlp-proto-common`
+and printed with protobuf's `MessageToJson`, which is what the OTLP JSON
+exporters write. It was run from a folder with a neutral path, so the stack
+trace in the file names nothing personal. The short sleeps in it are only so
+the durations are not all 0 ms.
+
+`node scripts/check.mjs samples/fx-agent-error.otlp.json --exception "KeyError: 'JPY'"`
+failed before the change, reading `:`, and passes after it. The other nine
+samples and fixtures print exactly the same output before and after.
