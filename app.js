@@ -285,7 +285,7 @@ function select(s) {
   const a = s.attrs
   const facts = [[kindOf(s), "kind"], [ms(s.end - s.start), "took"], [s.status, "status"]]
   if (a["llm.model_name"]) facts.push([a["llm.model_name"], a["llm.provider"] ? `model, ${a["llm.provider"]}` : "model"])
-  if (a["llm.token_count.total"] != null) facts.push([`${a["llm.token_count.prompt"] ?? "?"} + ${a["llm.token_count.completion"] ?? "?"} = ${a["llm.token_count.total"]}`, "tokens, in + out"])
+  if (["prompt", "completion", "total"].some((k) => a[`llm.token_count.${k}`] != null)) facts.push([`${a["llm.token_count.prompt"] ?? "?"} + ${a["llm.token_count.completion"] ?? "?"} = ${tokensOf(s) ?? "?"}`, "tokens, in + out"])
   if (costOf(s) != null) facts.push([dollars(costOf(s)), a["llm.cost.prompt"] != null && a["llm.cost.completion"] != null ? `cost, ${dollars(Number(a["llm.cost.prompt"]))} in + ${dollars(Number(a["llm.cost.completion"]))} out` : "cost"])
   if (a["llm.token_count.prompt_details.cache_read"] != null) facts.push([a["llm.token_count.prompt_details.cache_read"], "from cache"])
   if (a["llm.token_count.completion_details.reasoning"] != null) facts.push([a["llm.token_count.completion_details.reasoning"], "reasoning tokens"])
@@ -315,7 +315,7 @@ function select(s) {
   const exceptions = s.events.filter((e) => e.name === "exception")
   for (const e of exceptions) { const ea = flatten(e.attributes); parts.push(el("h3", { text: "Exception" }), el("pre", { text: `${ea["exception.type"] ?? ""}: ${ea["exception.message"] ?? ""}\n${ea["exception.stacktrace"] ?? ""}`.trim() })) }
 
-  const shown = /^(openinference\.span\.kind|llm\.(model_name|provider|token_count\..*|cost\..*|input_messages\..*|output_messages\..*|tools\..*|invocation_parameters)|input\.(value|mime_type)|output\.(value|mime_type)|tool\.name|retrieval\.documents\..*|gen_ai\.((input|output)\.messages|(prompt|completion)\.\d+\.(role|content|tool_call_id|tool_calls\.\d+\.(name|arguments|id))|usage\..*|(request|response)\.model|provider\.name|system|operation\.name|tool\.(name|definitions))|llm\.(usage\.total_tokens|request\.(type|functions\..*)))$/
+  const shown = /^(openinference\.span\.kind|llm\.(model_name|provider|token_count\.(prompt|completion|total|prompt_details\.cache_read|completion_details\.reasoning)|cost\.(total|prompt|completion)|input_messages\..*|output_messages\..*|tools\..*|invocation_parameters)|input\.(value|mime_type)|output\.(value|mime_type)|tool\.name|retrieval\.documents\..*|gen_ai\.((input|output)\.messages|(prompt|completion)\.\d+\.(role|content|tool_call_id|tool_calls\.\d+\.(name|arguments|id))|usage\..*|(request|response)\.model|provider\.name|system|operation\.name|tool\.(name|definitions))|llm\.(usage\.total_tokens|request\.(type|functions\..*)))$/
   const rest = Object.entries(a).filter(([k]) => !shown.test(k))
   if (rest.length) parts.push(el("h3", { text: "Other attributes" }), el("table", {}, ...rest.map(([k, v]) => el("tr", {}, el("td", { text: k }), el("td", { text: typeof v === "string" ? v : JSON.stringify(v) })))))
   detail.replaceChildren(...parts)

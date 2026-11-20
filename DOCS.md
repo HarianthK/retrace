@@ -231,3 +231,20 @@ the durations are not all 0 ms.
 `node scripts/check.mjs samples/fx-agent-error.otlp.json --exception "KeyError: 'JPY'"`
 failed before the change, reading `:`, and passes after it. The other nine
 samples and fixtures print exactly the same output before and after.
+
+## Token counts the detail pane hid
+
+The detail pane leaves out of its "Other attributes" table every key it
+already shows somewhere else. That list used to say `llm.token_count.*` and
+`llm.cost.*`, which also took in keys it never showed, such as
+`llm.token_count.prompt_details.cache_write` and the audio counts. Those
+went missing from the page entirely. The tokens line also appeared only when
+a span had a total, so a span with only a prompt count showed no tokens at all.
+
+The list now names only the token and cost keys the page actually shows, and
+the tokens line appears when any of the prompt, completion or total counts is
+there, with `?` for the ones that are missing. `scripts/fixtures/partial-tokens.json`
+has a model call with a prompt count and a cache write and nothing else.
+`node scripts/check.mjs scripts/fixtures/partial-tokens.json --facts "1200 +"`
+and the same with `--headings "Other attributes"` both failed before the
+change and pass after it.
