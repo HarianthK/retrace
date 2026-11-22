@@ -1,5 +1,5 @@
 // Serves the folder, opens the page in headless Chrome, loads a sample file, prints what was rendered.
-// Run: node scripts/check.mjs [samples/weather-agent.json ...] [--title "209 tokens"] [--traces "167 tokens"] [--messages "get_weather"] [--facts "131 + 16"] [--headings "Tools offered (1)"] [--exception "KeyError"]
+// Run: node scripts/check.mjs [samples/weather-agent.json ...] [--title "209 tokens"] [--rows 5] [--traces "167 tokens"] [--messages "get_weather"] [--facts "131 + 16"] [--headings "Tools offered (1)"] [--exception "KeyError"]
 import { spawn } from "node:child_process"
 import http from "node:http"
 import { existsSync, readFileSync } from "node:fs"
@@ -18,6 +18,8 @@ const wantFacts = args.includes("--facts") ? args.splice(args.indexOf("--facts")
 const wantHeadings = args.includes("--headings") ? args.splice(args.indexOf("--headings"), 2)[1] : null
 // --exception: the first span marked as an error must show an Exception section containing the text.
 const wantException = args.includes("--exception") ? args.splice(args.indexOf("--exception"), 2)[1] : null
+// --rows N: the first trace's tree must show exactly N spans.
+const wantRows = args.includes("--rows") ? Number(args.splice(args.indexOf("--rows"), 2)[1]) : null
 // Each file is read here, from any path, so a file outside this folder works and a missing
 // one stops the check with its name instead of rendering an error page as if it were the file.
 const samples = (args.length ? args : ["samples/weather-agent.json"]).map((p) => {
@@ -57,6 +59,10 @@ const out = JSON.parse(r.result.value)
 console.log(JSON.stringify(out, null, 1))
 if (wantTitle != null && !out.title.includes(wantTitle)) {
   console.error(`check: the title is "${out.title}", which does not contain "${wantTitle}"`)
+  chrome.kill(); server.close(); process.exit(1)
+}
+if (wantRows != null && out.rows.length !== wantRows) {
+  console.error(`check: the tree shows ${out.rows.length} spans, not ${wantRows}`)
   chrome.kill(); server.close(); process.exit(1)
 }
 if (wantTraces != null && !out.traces.join(" | ").includes(wantTraces)) {

@@ -214,7 +214,7 @@ const dollars = (n) => `$${n >= 1 ? n.toFixed(2) : Number(n.toPrecision(2))}`
 // only spans with no counted ancestor keeps it once. Bounded, in case parents form a loop.
 function traceSum(list, of) {
   const byId = new Map(list.map((s) => [s.id, s]))
-  const counted = (s) => { let p = byId.get(s.parentId); for (let n = 0; p && n < list.length; n++, p = byId.get(p.parentId)) if (of(p) != null) return false; return true }
+  const counted = (s) => { let p = byId.get(s.parentId); for (let n = 0; p && p !== s && n < list.length; n++, p = byId.get(p.parentId)) if (of(p) != null) return false; return true }
   return list.filter((s) => of(s) != null && counted(s)).reduce((sum, s) => sum + of(s), 0)
 }
 // "1,234 tokens, $0.012", or only the part a trace has.
@@ -227,8 +227,11 @@ function showTrace(id, list) {
   for (const s of list) { const k = list.some((x) => x.id === s.parentId) ? s.parentId : null; if (!byParent.has(k)) byParent.set(k, []); byParent.get(k).push(s) }
   for (const v of byParent.values()) v.sort((a, b) => a.start - b.start)
   const rows = []
-  const walk = (parent, depth) => { for (const s of byParent.get(parent) || []) { rows.push([s, depth]); walk(s.id, depth + 1) } }
+  const placed = new Set()
+  const walk = (parent, depth) => { for (const s of byParent.get(parent) || []) if (!placed.has(s)) { placed.add(s); rows.push([s, depth]); walk(s.id, depth + 1) } }
   walk(null, 0)
+  // A span that is its own parent, or two that are each other's, never reach the top; each left over starts a tree.
+  for (const s of [...list].sort((a, b) => a.start - b.start)) if (!placed.has(s)) { placed.add(s); rows.push([s, 0]); walk(s.id, 1) }
   const errors = list.filter((s) => s.status === "ERROR").length
   treeTitle.textContent = `${list.length} spans, ${ms(total)}${usage(list)}${errors ? `, ${errors} with errors` : ""}`
   tree.replaceChildren(...rows.map(([s, depth]) => {

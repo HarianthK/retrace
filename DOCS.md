@@ -248,3 +248,24 @@ has a model call with a prompt count and a cache write and nothing else.
 `node scripts/check.mjs scripts/fixtures/partial-tokens.json --facts "1200 +"`
 and the same with `--headings "Other attributes"` both failed before the
 change and pass after it.
+
+## Spans whose parents go round in a circle
+
+The tree is drawn by starting from the spans with no parent in the trace and
+walking down. A span that named itself as its parent, or two that named each
+other, were never reached that way, so they vanished. The title counted them,
+"5 spans", over a tree of two. A broken exporter or a hand-edited file can do
+this, and the page is for looking at exactly those files.
+
+After the walk from the top, any span not yet placed now starts a tree of its
+own, in start order. Each span is placed once, so a loop cannot repeat. The
+token and cost sums had the same blind spot. A span climbing its ancestors
+looking for one already counted would come round to itself and decide it was
+covered, so the loop's 12 tokens were dropped. The climb now stops when it
+gets back to where it started.
+
+`scripts/fixtures/parent-loop.json` has a normal pair, a span that is its own
+parent, and a loop of two. `check.mjs` gained `--rows N`, and
+`node scripts/check.mjs scripts/fixtures/parent-loop.json --rows 5 --title "42 tokens"`
+failed on both counts before and passes after. Each of the two changes, taken
+out alone, fails it. Every sample and fixture prints the same as before.
