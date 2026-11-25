@@ -1,0 +1,5 @@
+[
+ {"name": "agent", "context": {"trace_id": "0xefefefefefefefefefefefefefefefef", "span_id": "0x1111111111111111"}, "parent_id": null,
+  "start_time": "2026-11-24T10:00:00.000000Z", "end_time": "2026-11-24T10:00:00.999700Z", "status": {"status_code": "OK"},
+  "attributes": {"openinference.span.kind": "LLM", "llm.token_count.total": 5000, "llm.cost.total": 0.9996}}
+]

@@ -269,3 +269,14 @@ parent, and a loop of two. `check.mjs` gained `--rows N`, and
 `node scripts/check.mjs scripts/fixtures/parent-loop.json --rows 5 --title "42 tokens"`
 failed on both counts before and passes after. Each of the two changes, taken
 out alone, fails it. Every sample and fixture prints the same as before.
+
+## A cost just under a dollar, and a trace of one span
+
+Costs under a dollar print to two significant figures, so $0.0015 stays
+readable. From $0.995 up to $1 those two figures round to 1.0, and the title
+said "$1", the one cost shown without cents. Cents now start at $0.995. A trace
+holding a single span was titled "1 spans"; it now says "1 span".
+
+`scripts/fixtures/rounding-edge.json` is one span costing $0.9996.
+`node scripts/check.mjs scripts/fixtures/rounding-edge.json --title "1 span, 999 ms, 5,000 tokens, $1.00"`
+fails before and passes after, and every sample prints the same title as before.

@@ -208,7 +208,8 @@ function costOf(s) {
   if (total != null) return Number(total)
   return prompt != null && completion != null ? Number(prompt) + Number(completion) : null
 }
-const dollars = (n) => `$${n >= 1 ? n.toFixed(2) : Number(n.toPrecision(2))}`
+// From 0.995 up, two significant figures would round to a bare "$1"; cents show it.
+const dollars = (n) => `$${n >= 0.995 ? n.toFixed(2) : Number(n.toPrecision(2))}`
 
 // One model call can show up twice, a framework's span around the client's own; counting
 // only spans with no counted ancestor keeps it once. Bounded, in case parents form a loop.
@@ -233,7 +234,7 @@ function showTrace(id, list) {
   // A span that is its own parent, or two that are each other's, never reach the top; each left over starts a tree.
   for (const s of [...list].sort((a, b) => a.start - b.start)) if (!placed.has(s)) { placed.add(s); rows.push([s, 0]); walk(s.id, 1) }
   const errors = list.filter((s) => s.status === "ERROR").length
-  treeTitle.textContent = `${list.length} spans, ${ms(total)}${usage(list)}${errors ? `, ${errors} with errors` : ""}`
+  treeTitle.textContent = `${list.length} ${list.length === 1 ? "span" : "spans"}, ${ms(total)}${usage(list)}${errors ? `, ${errors} with errors` : ""}`
   tree.replaceChildren(...rows.map(([s, depth]) => {
     const kind = kindOf(s)
     const row = el("div", { class: "span", style: `padding-left:${6 + depth * 16}px`, onclick: () => select(s) },
