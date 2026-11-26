@@ -208,8 +208,12 @@ function costOf(s) {
   if (total != null) return Number(total)
   return prompt != null && completion != null ? Number(prompt) + Number(completion) : null
 }
-// From 0.995 up, two significant figures would round to a bare "$1"; cents show it.
-const dollars = (n) => `$${n >= 0.995 ? n.toFixed(2) : Number(n.toPrecision(2))}`
+// Cents from a dime up ($0.50, not $0.5); below that two significant figures, written out, never as 1.5e-7.
+function dollars(n) {
+  const s = Number(n.toPrecision(2))
+  if (s >= 0.1 || !s) return `$${(s >= 0.1 ? n : 0).toFixed(2)}`
+  return `$${s.toFixed(1 - Math.floor(Math.log10(s))).replace(/0+$/, "")}`
+}
 
 // One model call can show up twice, a framework's span around the client's own; counting
 // only spans with no counted ancestor keeps it once. Bounded, in case parents form a loop.

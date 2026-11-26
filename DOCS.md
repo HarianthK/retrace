@@ -280,3 +280,18 @@ holding a single span was titled "1 spans"; it now says "1 span".
 `scripts/fixtures/rounding-edge.json` is one span costing $0.9996.
 `node scripts/check.mjs scripts/fixtures/rounding-edge.json --title "1 span, 999 ms, 5,000 tokens, $1.00"`
 fails before and passes after, and every sample prints the same title as before.
+
+## Cents, and costs too small for plain notation
+
+Costs under a dollar went through `Number(n.toPrecision(2))`, which drops
+trailing zeros and lets JavaScript pick the notation. Half a dollar showed as
+"$0.5", a dime as "$0.1", and a call costing $0.00000015, a few tokens on a
+cheap model, as "$1.5e-7". From a dime up a cost now shows cents, "$0.50".
+Below that it keeps two significant figures but is written out in full, as
+"$0.00000015", and "$0.000038" and "$0.0015" print as before.
+
+`scripts/fixtures/small-costs.json` has one call at $0.50 and one at
+$0.00000015.
+`node scripts/check.mjs scripts/fixtures/small-costs.json --title "$0.50" --facts "$0.00000015cost"`
+fails before and passes after, and every sample and fixture prints the same
+title as before.
